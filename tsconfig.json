@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "allowJs": true,
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "noImplicitAny": false,
+    "sourceMap": true,
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "jsx": "preserve",
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
+    "types": ["@webgpu/types"],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "+/*": ["./resources/*"],
+      "#demos/*": ["./src/app/demos/*"],
+      "#exercises/*": ["./src/app/exercises/*"]
+    }
+  },
+  "exclude": ["node_modules"],
+  "include": [
+    "custom.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "dist/types/**/*.ts",
+    "next-env.d.ts",
+    "./dist/types/**/*.ts",
+    ".next/types/**/*.ts",
+    "scripts/**/*.ts",
+  ]
+}

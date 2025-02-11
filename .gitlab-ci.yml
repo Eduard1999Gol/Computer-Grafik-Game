@@ -1,0 +1,21 @@
+image: node:lts
+
+pages:
+  stage: deploy
+
+  cache:
+    paths:
+      - node_modules/
+
+  script:
+    - npm i
+    - npm run build
+    - echo $CI_PAGES_URL
+    - cp -a dist/. public/
+
+  artifacts:
+    paths:
+      - public
+
+  only:
+    - main
