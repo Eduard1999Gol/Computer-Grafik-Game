@@ -1,6 +1,109 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --font-*: initial;
+  --font-default: Noto Sans;
+  --font-sans: Noto Sans;
+
+  --color-jgu1: #c1002a;
+  --color-jgu2: #636363;
+  --color-jgu3: #9b9b9b;
+  --color-accent: var(--dm-accent);
+  --color-jgu-accent: var(--dm-accent);
+  --color-jgu-white: #ffffff;
+
+  --color-jgu-red-10: #fff5f7;
+  --color-jgu-red-20: #f3d7d9;
+  --color-jgu-red-40: #e7adb3;
+  --color-jgu-red-55: #de8b94;
+  --color-jgu-red-70: #d46774;
+  --color-jgu-red-85: #ca3f51;
+  --color-jgu-red: #c1002a;
+  --color-jgu-red-dark: #a21624;
+
+  --color-jgu-orange-20: #ffe0d7;
+  --color-jgu-orange-40: #ffc1ac;
+  --color-jgu-orange-55: #ffa88c;
+  --color-jgu-orange-70: #ff8e68;
+  --color-jgu-orange-85: #ff7341;
+  --color-jgu-orange: #ff5500;
+  --color-jgu-orange-dark: #c74d15;
+
+  --color-jgu-blue-20: #d5e2e7;
+  --color-jgu-blue-40: #a9c4ce;
+  --color-jgu-blue-55: #86aebc;
+  --color-jgu-blue-70: #6095a8;
+  --color-jgu-blue-85: #377d94;
+  --color-jgu-blue: #046380;
+  --color-jgu-blue-dark: #046380;
+
+  --color-jgu-dark-blue-20: #d3dde0;
+  --color-jgu-dark-blue-40: #a6b9c1;
+  --color-jgu-dark-blue-55: #829ea8;
+  --color-jgu-dark-blue-70: #5b818e;
+  --color-jgu-dark-blue-85: #316474;
+  --color-jgu-dark-blue: #024358;
+  --color-jgu-dark-blue-dark: #024358;
+
+  --color-jgu-green-20: #d3edd9;
+  --color-jgu-green-40: #a4dab1;
+  --color-jgu-green-55: #80cc92;
+  --color-jgu-green-70: #5abe70;
+  --color-jgu-green-85: #32af4c;
+  --color-jgu-green: #00a023;
+  --color-jgu-green-dark: #108a31;
+
+  --color-jgu-gray-20: #e6e6e6;
+  --color-jgu-gray-40: #c5c5c5;
+  --color-jgu-gray-55: #aeaeae;
+  --color-jgu-gray-70: #9b9b9b;
+  --color-jgu-gray-85: #7d7d7d;
+  --color-jgu-gray: #636363;
+  --color-jgu-gray-dark: #636363;
+
+  --color-jgu-yellow-20: #fcf3de;
+  --color-jgu-yellow-40: #fae9bc;
+  --color-jgu-yellow-55: #f7e0a1;
+  --color-jgu-yellow-70: #f5d785;
+  --color-jgu-yellow-85: #f3ce67;
+  --color-jgu-yellow: #f1c645;
+  --color-jgu-yellow-dark: #ccaa3a;
+
+  --color-jgu-purple-10: #f5f0f2;
+  --color-jgu-purple-20: #e5dde2;
+  --color-jgu-purple-40: #cab9c4;
+  --color-jgu-purple-55: #b69ead;
+  --color-jgu-purple-70: #a18095;
+  --color-jgu-purple-85: #8b637d;
+  --color-jgu-purple: #754363;
+  --color-jgu-purple-dark: #603651;
+
+  --color-jgu-black-20: #b5b8b9;
+  --color-jgu-black-40: #979e9f;
+  --color-jgu-black-55: #7f8c8e;
+  --color-jgu-black-70: #667278;
+  --color-jgu-black-85: #4a5a61;
+  --color-jgu-black: #2d3a3f;
+  --color-jgu-black-dark: #2d3a3f;
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
 
 input[type="color"] {
   -webkit-appearance: none;

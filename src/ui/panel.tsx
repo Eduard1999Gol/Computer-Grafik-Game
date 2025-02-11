@@ -29,7 +29,7 @@ export const Panel = (props: {
         <div className="pointer-events-none w-full">
           <button
             className={
-              "pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-jgu-gray p-4 shadow-sm transition-all duration-200 ease-in-out hover:scale-110 hover:bg-jgu-red " +
+              "pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-jgu-gray p-4 shadow-xs transition-all duration-200 ease-in-out hover:scale-110 hover:bg-jgu-red " +
               (props.reduceTopPadding ? "" : "ml-20")
             }
             onClick={() => {
@@ -49,7 +49,7 @@ export const Panel = (props: {
         </div>
       ) : null}
       <div
-        className="transition-[width, opacity] flex h-full w-full grow flex-col gap-3 overflow-hidden rounded-xl bg-jgu-gray/60 shadow-xl backdrop-blur duration-200 ease-in-out"
+        className="transition-[width, opacity] flex h-full w-full grow flex-col gap-3 overflow-hidden rounded-xl bg-jgu-gray/60 shadow-xl backdrop-blur-sm duration-200 ease-in-out"
         ref={containerRef}
         style={{
           opacity: width == 0 ? 0 : 1,

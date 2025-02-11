@@ -2,7 +2,7 @@ export const LoadView = (props: { loading?: boolean }) => {
   return (
     <div
       className={
-        "pointer-events-none absolute inset-0 flex items-center justify-center bg-neutral-500/60 backdrop-blur transition-[opacity] duration-300 ease-in-out " +
+        "pointer-events-none absolute inset-0 flex items-center justify-center bg-neutral-500/60 backdrop-blur-sm transition-[opacity] duration-300 ease-in-out " +
         (props.loading ? "opacity-100" : "opacity-0")
       }
     >

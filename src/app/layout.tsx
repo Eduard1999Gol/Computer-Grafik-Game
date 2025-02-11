@@ -1,7 +1,7 @@
 import { Noto_Sans } from "next/font/google";
 
 import "bootstrap-icons/font/bootstrap-icons.min.css";
-import "./layout.scss";
+import "./layout.css";
 import { AutoBackButton } from "@/ui/back-button";
 import { Metadata } from "next";
 
