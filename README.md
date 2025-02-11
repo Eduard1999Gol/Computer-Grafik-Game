@@ -1,4 +1,4 @@
-# CG1-Demos
+# CG1 Practical Course Template
 
 To run this demo you need nodejs installed.
 For best developing experience open the project in Visual Studio Code and install all recommended extensions.
@@ -14,5 +14,3 @@ Run server from Terminal:
 ```sh
 /> npm run dev
 ```
-
-Run server from Visual Studio Code: Run the "Run Development Server" Task (optionally through the Task Runner extension).
