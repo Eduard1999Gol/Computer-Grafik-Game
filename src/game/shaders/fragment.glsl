@@ -14,8 +14,10 @@ void main() {
     vec3 normal = normalize(vNormal);
     vec3 lightDir = normalize(lightPosition - vPosition);
     
-    float diff = max(dot(normal, lightDir), 0.1);
-    vec3 diffuse = diff * diffuseColor;
+    // Improved lighting calculation with ambient component
+    float ambient = 0.3;
+    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 diffuse = (ambient + diff) * diffuseColor;
     
-    gl_FragColor = vec4(diffuse, 1.0) * texture2D(uTexture, vTexCoord);
+    gl_FragColor = vec4(diffuse, 1.0);
 }

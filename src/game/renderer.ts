@@ -288,8 +288,8 @@ export class Renderer {
     // Use the shader program
     this.gl.useProgram(this.shaderProgram);
     
-    // Set up common uniforms
-    this.gl.uniform3f(this.uniformLocations.lightPosition, 10, 10, -10);
+    // Set up common uniforms with improved lighting position
+    this.gl.uniform3f(this.uniformLocations.lightPosition, 5, 10, 5);
     
     // Bind projection matrix
     this.gl.uniformMatrix4fv(
@@ -309,7 +309,7 @@ export class Renderer {
   }
   
   private renderPlayer(player: Player): void {
-    // Set player color
+    // Set player color to a more vibrant blue
     this.gl.uniform3f(this.uniformLocations.diffuseColor, 0.2, 0.6, 1.0);
     
     // Compute model-view matrix for player
