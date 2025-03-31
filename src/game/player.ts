@@ -11,7 +11,7 @@ export class Player {
   constructor() {
     this.position = new Vector3([0, 0, 0]);
     this.velocity = new Vector3([0, 0, 0]);
-    this.size = new Vector3([0.3, 0.5, 0.3]); // Player size (width, height, depth)
+    this.size = new Vector3([0.5, 0.5, 0.5]); // Player size (width, height, depth)
     this.lane = 1; // Start in center lane
     this.isJumping = false;
   }
@@ -31,7 +31,7 @@ export class Player {
   jump(): void {
     // Only allow jump if player is on the ground and cooldown is over
     if (!this.isJumping && this.jumpCooldown <= 0) {
-      this.velocity[1] = 8.0; // Jump velocity - increased for better feel
+      this.velocity[1] = 12.0; // Jump velocity - increased for better feelmp higher
       this.isJumping = true;
       this.jumpCooldown = 0.1; // Small cooldown to prevent double jumps
     }
@@ -45,7 +45,7 @@ export class Player {
     
     // Apply gravity when in the air
     if (this.isJumping || this.position[1] > 0) {
-      this.velocity[1] -= 20.0 * deltaTime; // Stronger gravity for better feel
+      this.velocity[1] -= 25.0 * deltaTime; // Increased from 20.0 to make the jump feel less floaty
       this.position[1] += this.velocity[1] * deltaTime;
       
       // Check if landed
