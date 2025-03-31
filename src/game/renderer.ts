@@ -2,6 +2,12 @@ import { Player } from './player';
 import { Vector3 } from '@math.gl/core';
 import { normalMatrix } from '@/utility';
 
+export interface Obstacle {
+  position: Vector3;
+  scale?: Vector3;
+  type: string;
+}
+
 export class Renderer {
   private projectionMatrix: Float32Array;
   private viewMatrix: Float32Array;
@@ -284,7 +290,7 @@ export class Renderer {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   }
   
-  public render(player: Player, obstacles: any[]): void {
+  public render(player: Player, obstacles: Obstacle[]): void {
     // Use the shader program
     this.gl.useProgram(this.shaderProgram);
     
@@ -347,7 +353,7 @@ export class Renderer {
     this.drawCube();
   }
   
-  private renderObstacles(obstacles: any[]): void {
+  private renderObstacles(obstacles: Obstacle[]): void {
     // For each obstacle, compute its matrix and render it
     for (const obstacle of obstacles) {
       // Set obstacle color based on type
@@ -359,13 +365,39 @@ export class Renderer {
       
       // Compute model-view matrix for obstacle
       const modelViewMatrix = new Float32Array(16);
-      // In a real implementation, this would compute proper model-view matrix
+      
+      // Start with the view matrix
+      for (let i = 0; i < 16; i++) {
+        modelViewMatrix[i] = this.viewMatrix[i];
+      }
+      
+      // Apply obstacle position
+      modelViewMatrix[12] += obstacle.position.x;
+      modelViewMatrix[13] += obstacle.position.y;
+      modelViewMatrix[14] += obstacle.position.z;
+      
+      // Apply obstacle scale if available, otherwise use default scale
+      const scale = obstacle.scale || new Vector3(1, 1, 1);
+      
+      // Scale the modelViewMatrix (simplified for demo)
+      // Note: In a full implementation, you would use matrix multiplication
+      modelViewMatrix[0] *= scale.x;
+      modelViewMatrix[5] *= scale.y;
+      modelViewMatrix[10] *= scale.z;
       
       // Set uniforms and draw the obstacle
       this.gl.uniformMatrix4fv(
         this.uniformLocations.modelViewMatrix,
         false, 
         modelViewMatrix
+      );
+      
+      // Calculate and set normal matrix
+      const nMatrix = normalMatrix(modelViewMatrix);
+      this.gl.uniformMatrix4fv(
+        this.uniformLocations.normalMatrix,
+        false,
+        nMatrix
       );
       
       // Draw the obstacle
