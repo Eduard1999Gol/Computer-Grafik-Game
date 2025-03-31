@@ -238,8 +238,9 @@ export class Renderer {
     this.projectionMatrix[15] = 0;
     
     // Update the view matrix (camera position)
-    const eye = [0, 5, 10]; // Camera position
-    const center = [0, 0, 0]; // Point to look at
+    // Position camera higher and further back for better game field visibility
+    const eye = [0, 15, 15]; // Camera position: moved higher and further back
+    const center = [0, 0, -10]; // Point to look at: moved forward to see more of the track ahead
     const up = [0, 1, 0]; // Up direction
     
     // Simple view matrix calculation
