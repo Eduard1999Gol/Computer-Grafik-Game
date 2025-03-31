@@ -39,6 +39,10 @@ export class Renderer {
     
     // Set initial projection matrix
     this.updateProjection(this.gl.canvas.width / this.gl.canvas.height);
+    
+    // Enable depth testing
+    this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.depthFunc(this.gl.LESS);
   }
   
   private setupShaderLocations(): void {
@@ -238,9 +242,9 @@ export class Renderer {
     this.projectionMatrix[15] = 0;
     
     // Update the view matrix (camera position)
-    // Position camera higher and further back for better game field visibility
-    const eye = [0, 15, 15]; // Camera position: moved higher and further back
-    const center = [0, 0, -10]; // Point to look at: moved forward to see more of the track ahead
+    // Adjust camera position for better visibility and to avoid overlap issues
+    const eye = [0, 18, 20]; // Camera position: higher and further back
+    const center = [0, 0, -5]; // Look slightly ahead of the player
     const up = [0, 1, 0]; // Up direction
     
     // Simple view matrix calculation
@@ -292,6 +296,9 @@ export class Renderer {
   }
   
   public render(player: Player, obstacles: Obstacle[]): void {
+    // Clear depth buffer before each frame
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+    
     // Use the shader program
     this.gl.useProgram(this.shaderProgram);
     
@@ -305,14 +312,14 @@ export class Renderer {
       this.projectionMatrix
     );
     
-    // Render the player
-    this.renderPlayer(player);
+    // Render the ground/track first (furthest away)
+    this.renderGround();
     
-    // Render obstacles
+    // Render obstacles next
     this.renderObstacles(obstacles);
     
-    // Render the ground/track
-    this.renderGround();
+    // Render the player last (closest to camera)
+    this.renderPlayer(player);
   }
   
   private renderPlayer(player: Player): void {
