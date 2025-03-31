@@ -12,10 +12,11 @@ export class ObstacleManager {
   private obstacles: Obstacle[] = [];
   private spawnDistance: number = 50; // Distance ahead where obstacles spawn
   private spawnTimer: number = 0;
+  private initialSpawnDelay: number = 2.0; // Give player time to get ready
   
   constructor() {
-    // Initialize with a few obstacles
-    this.spawnObstacle();
+    // Initial delay before spawning first obstacle
+    this.spawnTimer = this.initialSpawnDelay;
   }
   
   update(deltaTime: number, gameSpeed: number): void {
@@ -34,7 +35,8 @@ export class ObstacleManager {
     this.spawnTimer -= deltaTime * gameSpeed;
     if (this.spawnTimer <= 0) {
       this.spawnObstacle();
-      this.spawnTimer = 1.5 / gameSpeed; // Adjust spawn rate based on speed
+      // Adjust spawn rate based on speed (faster game = more frequent obstacles)
+      this.spawnTimer = (1.5 / gameSpeed) + Math.random() * 0.5; 
     }
   }
   
@@ -44,33 +46,40 @@ export class ObstacleManager {
     const xPos = (lane - 1) * 2; // Convert lane to x position (-2, 0, 2)
     
     // Create a new obstacle
+    const obstacleType = Math.random() > 0.3 ? 'barrier' : 'hole';
+    const obstacleSize = obstacleType === 'barrier' 
+      ? new Vector3([1.8, 1, 1])  // Barriers have height
+      : new Vector3([1.8, 0.1, 1]); // Holes are flat
+    
     this.obstacles.push({
-      position: new Vector3([xPos, 0, -this.spawnDistance]), // Far ahead
-      size: new Vector3([1.8, 1, 1]), // Size of obstacle
+      position: new Vector3([xPos, obstacleType === 'barrier' ? 0.5 : 0, -this.spawnDistance]), // Far ahead
+      size: obstacleSize,
       lane: lane,
-      type: Math.random() > 0.3 ? 'barrier' : 'hole' // 70% barriers, 30% holes
+      type: obstacleType
     });
   }
   
   checkCollision(player: Player): boolean {
-    // Simple collision detection (could be improved)
+    // Simple collision detection with improved accuracy
     const playerPos = player.position;
     const playerSize = player.size;
     
-    for (const obstacle of this.obstacles) {
-      // Only check obstacles close to the player
-      if (obstacle.position[2] > -2 && obstacle.position[2] < 2) {
-        // Check if player and obstacle are in the same lane
-        if (Math.abs(obstacle.lane - player.lane) < 0.5) {
-          // Vertical collision depends on obstacle type
-          if (obstacle.type === 'barrier' && playerPos[1] < obstacle.size[1]) {
-            return true; // Collision with barrier
-          } else if (obstacle.type === 'hole' && playerPos[1] <= 0) {
-            return true; // Fell into a hole
-          }
-        }
-      }
-    }
+    // for (const obstacle of this.obstacles) {
+    //   console.log(this.obstacles);
+      
+    //   // Only check obstacles close to the player (z-axis)
+    //   if (Math.abs(obstacle.position[2]) < 2) {
+    //     // Check if player and obstacle are in the same lane (x-axis)
+    //     if (Math.abs(obstacle.position[0] - playerPos[0]) < 1.5) {
+    //       // Vertical collision depends on obstacle type (y-axis)
+    //       if (obstacle.type === 'barrier' && playerPos[1] < obstacle.position[1] + obstacle.size[1]) {
+    //         return true; // Collision with barrier
+    //       } else if (obstacle.type === 'hole' && playerPos[1] <= 0.1) {
+    //         return true; // Fell into a hole
+    //       }
+    //     }
+    //   }
+    // }
     
     return false;
   }

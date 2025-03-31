@@ -18,6 +18,10 @@ export class EndlessRunnerGame {
   private score: number = 0;
   private gameOver: boolean = false;
   
+  // Add callbacks for game state changes
+  private onGameOverCallback?: (score: number) => void;
+  private onScoreUpdateCallback?: (score: number) => void;
+  
   constructor(private canvas: HTMLCanvasElement) {
     // Initialize WebGL context
     const gl = canvas.getContext('webgl2');
@@ -56,6 +60,41 @@ export class EndlessRunnerGame {
       }
     });
     
+    // Add touch controls for mobile devices
+    this.canvas.addEventListener('touchstart', (event) => {
+      if (this.gameOver) return;
+      
+      const touch = event.touches[0];
+      const x = touch.clientX;
+      const width = this.canvas.clientWidth;
+      
+      if (x < width / 3) {
+        this.player.moveLeft();
+      } else if (x > (width * 2) / 3) {
+        this.player.moveRight();
+      } else {
+        this.player.jump();
+      }
+      
+      event.preventDefault();
+    });
+  }
+  
+  // Add callbacks for game events
+  public onGameOver(callback: (score: number) => void): void {
+    this.onGameOverCallback = callback;
+  }
+  
+  public onScoreUpdate(callback: (score: number) => void): void {
+    this.onScoreUpdateCallback = callback;
+  }
+  
+  public getScore(): number {
+    return Math.floor(this.score);
+  }
+  
+  public isGameOver(): boolean {
+    return this.gameOver;
   }
   
   public start(): void {
@@ -63,6 +102,12 @@ export class EndlessRunnerGame {
     this.score = 0;
     this.gameSpeed = 1;
     this.lastFrameTime = performance.now();
+    
+    // Reset game components
+    this.player = new Player();
+    this.obstacleManager = new ObstacleManager();
+    
+    // Start game loop
     requestAnimationFrame(this.gameLoop.bind(this));
   }
   
@@ -100,10 +145,22 @@ export class EndlessRunnerGame {
     // Increment score
     this.score += deltaTime * 10 * this.gameSpeed;
     
+    // Notify score update
+    if (this.onScoreUpdateCallback) {
+      this.onScoreUpdateCallback(Math.floor(this.score));
+    }
+    
     // Check for collisions
     if (this.obstacleManager.checkCollision(this.player)) {
+      console.log('Collision detected!');
+      
       this.gameOver = true;
       console.log('Game Over! Final Score:', Math.floor(this.score));
+      
+      // Notify game over
+      if (this.onGameOverCallback) {
+        this.onGameOverCallback(Math.floor(this.score));
+      }
     }
   }
   
