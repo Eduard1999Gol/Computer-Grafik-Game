@@ -1,6 +1,7 @@
 import { Player } from './player';
 import { Vector3 } from '@math.gl/core';
 import { normalMatrix } from '@/utility';
+import { cube_vertices, cube_indices, cube_normals, cube_texCoords } from "./cube_data"
 
 export interface Obstacle {
   position: Vector3;
@@ -8,7 +9,23 @@ export interface Obstacle {
   type: string;
 }
 
+// Entity rendering configuration
+interface RenderConfig {
+  color: number[];
+  scale?: Vector3;
+}
+
+// Buffer configuration object
+interface GeometryBuffers {
+  vertex: WebGLBuffer | null;
+  normal: WebGLBuffer | null;
+  texCoord: WebGLBuffer | null;
+  index: WebGLBuffer | null;
+  indexCount: number;
+}
+
 export class Renderer {
+  // Camera and projection matrices
   private projectionMatrix: Float32Array;
   private viewMatrix: Float32Array;
   
@@ -17,11 +34,18 @@ export class Renderer {
   private uniformLocations: { [key: string]: WebGLUniformLocation | null } = {};
   
   // Geometry buffers
-  private cubeVertexBuffer: WebGLBuffer | null = null;
-  private cubeNormalBuffer: WebGLBuffer | null = null;
-  private cubeTexCoordBuffer: WebGLBuffer | null = null;
-  private cubeIndexBuffer: WebGLBuffer | null = null;
-  private cubeIndexCount: number = 0;
+  private cubeGeometry: GeometryBuffers;
+  
+  // Rendering configurations
+  private readonly entityConfigs = {
+    player: { color: [0.2, 0.6, 1.0] },
+    barrier: { color: [0.8, 0.2, 0.2] },
+    obstacle: { color: [0.1, 0.1, 0.1] },
+    ground: { color: [0.3, 0.3, 0.3] }
+  };
+  
+  // Light configuration
+  private readonly lightPosition = [5, 10, 5];
   
   constructor(
     private gl: WebGL2RenderingContext, 
@@ -31,16 +55,18 @@ export class Renderer {
     this.projectionMatrix = new Float32Array(16);
     this.viewMatrix = new Float32Array(16);
     
-    // Set up attribute and uniform locations
+    // Initialize rendering pipeline
     this.setupShaderLocations();
-    
-    // Create geometry
-    this.createGeometry();
+    this.cubeGeometry = this.createCubeGeometry();
+    this.initializeRenderState();
     
     // Set initial projection matrix
     this.updateProjection(this.gl.canvas.width / this.gl.canvas.height);
   }
   
+  /**
+   * Set up attribute and uniform locations from shader program
+   */
   private setupShaderLocations(): void {
     // Get attribute locations
     this.attribLocations = {
@@ -60,156 +86,63 @@ export class Renderer {
     };
   }
   
-  private createGeometry(): void {
+  /**
+   * Initialize WebGL render state
+   */
+  private initializeRenderState(): void {
+    // Enable depth testing
+    this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.depthFunc(this.gl.LESS);
+  }
+  
+  /**
+   * Create cube geometry and return buffer objects
+   */
+  private createCubeGeometry(): GeometryBuffers {
     // Define cube vertices (positions)
-    const vertices = new Float32Array([
-      // Front face
-      -1.0, -1.0,  1.0,
-       1.0, -1.0,  1.0,
-       1.0,  1.0,  1.0,
-      -1.0,  1.0,  1.0,
-      
-      // Back face
-      -1.0, -1.0, -1.0,
-      -1.0,  1.0, -1.0,
-       1.0,  1.0, -1.0,
-       1.0, -1.0, -1.0,
-      
-      // Top face
-      -1.0,  1.0, -1.0,
-      -1.0,  1.0,  1.0,
-       1.0,  1.0,  1.0,
-       1.0,  1.0, -1.0,
-      
-      // Bottom face
-      -1.0, -1.0, -1.0,
-       1.0, -1.0, -1.0,
-       1.0, -1.0,  1.0,
-      -1.0, -1.0,  1.0,
-      
-      // Right face
-       1.0, -1.0, -1.0,
-       1.0,  1.0, -1.0,
-       1.0,  1.0,  1.0,
-       1.0, -1.0,  1.0,
-      
-      // Left face
-      -1.0, -1.0, -1.0,
-      -1.0, -1.0,  1.0,
-      -1.0,  1.0,  1.0,
-      -1.0,  1.0, -1.0
-    ]);
+    const vertices = cube_vertices
     
     // Define normals for lighting
-    const normals = new Float32Array([
-      // Front face
-       0.0,  0.0,  1.0,
-       0.0,  0.0,  1.0,
-       0.0,  0.0,  1.0,
-       0.0,  0.0,  1.0,
-      
-      // Back face
-       0.0,  0.0, -1.0,
-       0.0,  0.0, -1.0,
-       0.0,  0.0, -1.0,
-       0.0,  0.0, -1.0,
-      
-      // Top face
-       0.0,  1.0,  0.0,
-       0.0,  1.0,  0.0,
-       0.0,  1.0,  0.0,
-       0.0,  1.0,  0.0,
-      
-      // Bottom face
-       0.0, -1.0,  0.0,
-       0.0, -1.0,  0.0,
-       0.0, -1.0,  0.0,
-       0.0, -1.0,  0.0,
-      
-      // Right face
-       1.0,  0.0,  0.0,
-       1.0,  0.0,  0.0,
-       1.0,  0.0,  0.0,
-       1.0,  0.0,  0.0,
-      
-      // Left face
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0
-    ]);
+    const normals = cube_normals
     
     // Define texture coordinates
-    const texCoords = new Float32Array([
-      // Front face
-      0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
-      
-      // Back face
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
-      0.0, 0.0,
-      
-      // Top face
-      0.0, 1.0,
-      0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      
-      // Bottom face
-      1.0, 1.0,
-      0.0, 1.0,
-      0.0, 0.0,
-      1.0, 0.0,
-      
-      // Right face
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
-      0.0, 0.0,
-      
-      // Left face
-      0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0
-    ]);
+    const texCoords = cube_texCoords
     
     // Define indices for the cube
-    const indices = new Uint16Array([
-      0,  1,  2,      0,  2,  3,    // front
-      4,  5,  6,      4,  6,  7,    // back
-      8,  9,  10,     8,  10, 11,   // top
-      12, 13, 14,     12, 14, 15,   // bottom
-      16, 17, 18,     16, 18, 19,   // right
-      20, 21, 22,     20, 22, 23    // left
-    ]);
-    this.cubeIndexCount = indices.length;
-    
+    const indices = cube_indices
+
     // Create and bind vertex buffer
-    this.cubeVertexBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cubeVertexBuffer);
+    const vertexBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
     
     // Create and bind normal buffer
-    this.cubeNormalBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cubeNormalBuffer);
+    const normalBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, normals, this.gl.STATIC_DRAW);
     
     // Create and bind texture coordinate buffer
-    this.cubeTexCoordBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cubeTexCoordBuffer);
+    const texCoordBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, texCoords, this.gl.STATIC_DRAW);
     
     // Create and bind index buffer
-    this.cubeIndexBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.cubeIndexBuffer);
+    const indexBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indices, this.gl.STATIC_DRAW);
+    
+    return {
+      vertex: vertexBuffer,
+      normal: normalBuffer,
+      texCoord: texCoordBuffer,
+      index: indexBuffer,
+      indexCount: indices.length
+    };
   }
   
+  /**
+   * Update projection matrix based on aspect ratio
+   */
   public updateProjection(aspectRatio: number): void {
     // Set up a perspective projection
     const fieldOfView = (45 * Math.PI) / 180; // 45 degrees in radians
@@ -237,12 +170,19 @@ export class Renderer {
     this.projectionMatrix[14] = 2 * far * near * rangeInv;
     this.projectionMatrix[15] = 0;
     
-    // Update the view matrix (camera position)
-    const eye = [0, 5, 10]; // Camera position
-    const center = [0, 0, 0]; // Point to look at
+    this.updateViewMatrix();
+  }
+  
+  /**
+   * Update the view matrix (camera position)
+   */
+  private updateViewMatrix(): void {
+    // Camera parameters
+    const eye = [0, 20, 10]; // Camera position: higher and further back
+    const center = [0, 0, -5]; // Look slightly ahead of the player
     const up = [0, 1, 0]; // Up direction
     
-    // Simple view matrix calculation
+    // Calculate view matrix
     const z = this.normalizeVector(this.subtractVectors(eye, center));
     const x = this.normalizeVector(this.crossVectors(up, z));
     const y = this.normalizeVector(this.crossVectors(z, x));
@@ -265,7 +205,191 @@ export class Renderer {
     this.viewMatrix[15] = 1;
   }
   
-  // Vector helper functions
+  /**
+   * Main render method
+   */
+  public render(player: Player, obstacles: Obstacle[]): void {
+    this.initializeFrame();
+    this.renderGround();
+    this.renderObstacles(obstacles);
+    this.renderPlayer(player);
+  }
+  
+  /**
+   * Initialize frame for rendering
+   */
+  private initializeFrame(): void {
+    // Clear buffers
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+    
+    // Use shader program
+    this.gl.useProgram(this.shaderProgram);
+    
+    // Set common uniforms
+    this.gl.uniform3fv(this.uniformLocations.lightPosition, this.lightPosition);
+    this.gl.uniformMatrix4fv(
+      this.uniformLocations.projectionMatrix,
+      false,
+      this.projectionMatrix
+    );
+  }
+  
+  /**
+   * Render the player entity
+   */
+  private renderPlayer(player: Player): void {
+    const config = this.entityConfigs.player;
+    const position = player.position || new Vector3(0, 0, 0);
+    
+    // Render player cube at position
+    this.renderEntity(position, config);
+  }
+  
+  /**
+   * Render all obstacles
+   */
+  private renderObstacles(obstacles: Obstacle[]): void {
+    for (const obstacle of obstacles) {
+      const config = obstacle.type === 'barrier' 
+        ? this.entityConfigs.barrier 
+        : this.entityConfigs.obstacle;
+      
+      // Render obstacle with appropriate configuration
+      this.renderEntity(obstacle.position, {
+        ...config,
+        scale: obstacle.scale
+      });
+    }
+  }
+  
+  /**
+   * Render the ground
+   */
+  private renderGround(): void {
+    // Placeholder for ground rendering
+    const groundPosition = new Vector3(0, -2, 0);
+    const groundScale = new Vector3(20, 0.1, 100);
+    
+    this.renderEntity(groundPosition, {
+      ...this.entityConfigs.ground,
+      scale: groundScale
+    });
+  }
+  
+  /**
+   * Render a generic entity with position and configuration
+   */
+  private renderEntity(position: Vector3, config: RenderConfig): void {
+    // Set entity color
+    this.gl.uniform3fv(this.uniformLocations.diffuseColor, config.color);
+    
+    // Create model-view matrix
+    const modelViewMatrix = this.createModelViewMatrix(position, config.scale);
+    
+    // Set model-view matrix uniform
+    this.gl.uniformMatrix4fv(
+      this.uniformLocations.modelViewMatrix,
+      false,
+      modelViewMatrix
+    );
+    
+    // Calculate and set normal matrix
+    const nMatrix = normalMatrix(modelViewMatrix);
+    this.gl.uniformMatrix4fv(
+      this.uniformLocations.normalMatrix,
+      false,
+      nMatrix
+    );
+    
+    // Draw the entity
+    this.drawCube();
+  }
+  
+  /**
+   * Create model-view matrix for an entity
+   */
+  private createModelViewMatrix(position: Vector3, scale?: Vector3): Float32Array {
+    const modelViewMatrix = new Float32Array(16);
+    
+    // Start with view matrix
+    for (let i = 0; i < 16; i++) {
+      modelViewMatrix[i] = this.viewMatrix[i];
+    }
+    
+    // Apply position transformation
+    modelViewMatrix[12] += position.x;
+    modelViewMatrix[13] += position.y;
+    modelViewMatrix[14] += position.z;
+    
+    // Apply scale if provided
+    if (scale) {
+      // Note: This is a simplified approach. A proper implementation would
+      // use full matrix multiplication for accurate scaling
+      modelViewMatrix[0] *= scale.x;
+      modelViewMatrix[5] *= scale.y;
+      modelViewMatrix[10] *= scale.z;
+    }
+    
+    return modelViewMatrix;
+  }
+  
+  /**
+   * Draw a cube using the current bind buffers
+   */
+  private drawCube(): void {
+    const { vertex, normal, texCoord, index, indexCount } = this.cubeGeometry;
+    
+    if (!vertex || !normal || !texCoord || !index) return;
+    
+    // Bind position buffer
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertex);
+    this.gl.vertexAttribPointer(
+      this.attribLocations.position,
+      3,              // 3 components per vertex
+      this.gl.FLOAT,  // type of data
+      false,          // don't normalize
+      0,              // stride (0 = auto)
+      0               // offset
+    );
+    this.gl.enableVertexAttribArray(this.attribLocations.position);
+    
+    // Bind normal buffer
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normal);
+    this.gl.vertexAttribPointer(
+      this.attribLocations.normal,
+      3,              // 3 components per normal
+      this.gl.FLOAT,  // type of data
+      false,          // don't normalize
+      0,              // stride (0 = auto)
+      0               // offset
+    );
+    this.gl.enableVertexAttribArray(this.attribLocations.normal);
+    
+    // Bind texture coordinate buffer
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoord);
+    this.gl.vertexAttribPointer(
+      this.attribLocations.texCoord,
+      2,              // 2 components per texture coord
+      this.gl.FLOAT,  // type of data
+      false,          // don't normalize
+      0,              // stride (0 = auto)
+      0               // offset
+    );
+    this.gl.enableVertexAttribArray(this.attribLocations.texCoord);
+    
+    // Bind index buffer
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, index);
+    
+    // Draw the cube
+    this.gl.drawElements(
+      this.gl.TRIANGLES,
+      indexCount,
+      this.gl.UNSIGNED_SHORT,
+      0
+    );
+  }
+  
+  // Vector helper methods
   private normalizeVector(v: number[]): number[] {
     const length = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
     if (length > 0.00001) {
@@ -288,191 +412,5 @@ export class Renderer {
   
   private dotVectors(a: number[], b: number[]): number {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-  }
-  
-  public render(player: Player, obstacles: Obstacle[]): void {
-    // Use the shader program
-    this.gl.useProgram(this.shaderProgram);
-    
-    // Set up common uniforms with improved lighting position
-    this.gl.uniform3f(this.uniformLocations.lightPosition, 5, 10, 5);
-    
-    // Bind projection matrix
-    this.gl.uniformMatrix4fv(
-      this.uniformLocations.projectionMatrix,
-      false,
-      this.projectionMatrix
-    );
-    
-    // Render the player
-    this.renderPlayer(player);
-    
-    // Render obstacles
-    this.renderObstacles(obstacles);
-    
-    // Render the ground/track
-    this.renderGround();
-  }
-  
-  private renderPlayer(player: Player): void {
-    // Set player color to a more vibrant blue
-    this.gl.uniform3f(this.uniformLocations.diffuseColor, 0.2, 0.6, 1.0);
-    
-    // Compute model-view matrix for player
-    const modelViewMatrix = new Float32Array(16);
-    // Start with the view matrix
-    for (let i = 0; i < 16; i++) {
-      modelViewMatrix[i] = this.viewMatrix[i];
-    }
-    
-    // Apply player position and scale
-    // In a real game, you'd use player.position, but for our test cube:
-    const position = player.position || new Vector3(0, 0, 0);
-    
-    // Apply translation
-    modelViewMatrix[12] += position.x;
-    modelViewMatrix[13] += position.y;
-    modelViewMatrix[14] += position.z;
-    
-    // Set uniforms and draw the player
-    this.gl.uniformMatrix4fv(
-      this.uniformLocations.modelViewMatrix,
-      false,
-      modelViewMatrix
-    );
-    
-    // Calculate and set normal matrix
-    const nMatrix = normalMatrix(modelViewMatrix);
-    this.gl.uniformMatrix4fv(
-      this.uniformLocations.normalMatrix,
-      false,
-      nMatrix
-    );
-    
-    // Draw the player
-    this.drawCube();
-  }
-  
-  private renderObstacles(obstacles: Obstacle[]): void {
-    // For each obstacle, compute its matrix and render it
-    for (const obstacle of obstacles) {
-      // Set obstacle color based on type
-      if (obstacle.type === 'barrier') {
-        this.gl.uniform3f(this.uniformLocations.diffuseColor, 0.8, 0.2, 0.2);
-      } else {
-        this.gl.uniform3f(this.uniformLocations.diffuseColor, 0.1, 0.1, 0.1);
-      }
-      
-      // Compute model-view matrix for obstacle
-      const modelViewMatrix = new Float32Array(16);
-      
-      // Start with the view matrix
-      for (let i = 0; i < 16; i++) {
-        modelViewMatrix[i] = this.viewMatrix[i];
-      }
-      
-      // Apply obstacle position
-      modelViewMatrix[12] += obstacle.position.x;
-      modelViewMatrix[13] += obstacle.position.y;
-      modelViewMatrix[14] += obstacle.position.z;
-      
-      // Apply obstacle scale if available, otherwise use default scale
-      const scale = obstacle.scale || new Vector3(1, 1, 1);
-      
-      // Scale the modelViewMatrix (simplified for demo)
-      // Note: In a full implementation, you would use matrix multiplication
-      modelViewMatrix[0] *= scale.x;
-      modelViewMatrix[5] *= scale.y;
-      modelViewMatrix[10] *= scale.z;
-      
-      // Set uniforms and draw the obstacle
-      this.gl.uniformMatrix4fv(
-        this.uniformLocations.modelViewMatrix,
-        false, 
-        modelViewMatrix
-      );
-      
-      // Calculate and set normal matrix
-      const nMatrix = normalMatrix(modelViewMatrix);
-      this.gl.uniformMatrix4fv(
-        this.uniformLocations.normalMatrix,
-        false,
-        nMatrix
-      );
-      
-      // Draw the obstacle
-      this.drawCube();
-    }
-  }
-  
-  private renderGround(): void {
-    // Set ground color
-    this.gl.uniform3f(this.uniformLocations.diffuseColor, 0.3, 0.3, 0.3);
-    
-    // Compute model-view matrix for ground
-    const modelViewMatrix = new Float32Array(16);
-    // In a real implementation, this would compute proper model-view matrix
-    
-    // Set uniforms and draw the ground
-    this.gl.uniformMatrix4fv(
-      this.uniformLocations.modelViewMatrix,
-      false,
-      modelViewMatrix
-    );
-    
-    // Draw the ground (simplified)
-    this.drawCube();
-  }
-  
-  private drawCube(): void {
-    if (!this.cubeVertexBuffer || !this.cubeNormalBuffer || 
-        !this.cubeTexCoordBuffer || !this.cubeIndexBuffer) return;
-    
-    // Bind position buffer
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cubeVertexBuffer);
-    this.gl.vertexAttribPointer(
-      this.attribLocations.position,
-      3,              // 3 components per vertex
-      this.gl.FLOAT,  // type of data
-      false,          // don't normalize
-      0,              // stride (0 = auto)
-      0               // offset
-    );
-    this.gl.enableVertexAttribArray(this.attribLocations.position);
-    
-    // Bind normal buffer
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cubeNormalBuffer);
-    this.gl.vertexAttribPointer(
-      this.attribLocations.normal,
-      3,              // 3 components per normal
-      this.gl.FLOAT,  // type of data
-      false,          // don't normalize
-      0,              // stride (0 = auto)
-      0               // offset
-    );
-    this.gl.enableVertexAttribArray(this.attribLocations.normal);
-    
-    // Bind texture coordinate buffer
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.cubeTexCoordBuffer);
-    this.gl.vertexAttribPointer(
-      this.attribLocations.texCoord,
-      2,              // 2 components per texture coord
-      this.gl.FLOAT,  // type of data
-      false,          // don't normalize
-      0,              // stride (0 = auto)
-      0               // offset
-    );
-    this.gl.enableVertexAttribArray(this.attribLocations.texCoord);
-    
-    // Bind index buffer
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.cubeIndexBuffer);
-    
-    // Draw the cube
-    this.gl.drawElements(
-      this.gl.TRIANGLES,
-      this.cubeIndexCount,
-      this.gl.UNSIGNED_SHORT,
-      0
-    );
   }
 }

@@ -116,9 +116,8 @@ export class EndlessRunnerGame {
     const deltaTime = (currentTime - this.lastFrameTime) / 1000;
     this.lastFrameTime = currentTime;
     
-    // Clear the canvas
+    // Clear the canvas (only set the color, actual clearing is done in renderer)
     this.gl.clearColor(0.2, 0.3, 0.8, 1.0);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     
     if (!this.gameOver) {
       // Update game state
