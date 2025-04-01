@@ -3,6 +3,7 @@
 import { EndlessRunnerGame } from '@/game/game';
 import React from "react";
 import { RestartGameDialog } from '@/components/restart-game-dialog';
+import { StartGameDialog } from '@/components/start-game-dialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { DialogContent, DialogTitle } from '@radix-ui/react-dialog';
@@ -12,6 +13,7 @@ export default () => {
   const canvas = React.useRef<HTMLCanvasElement>(null);
   const [score, setScore] = React.useState(0);
   const [gameOver, setGameOver] = React.useState(false);
+  const [gameStarted, setGameStarted] = React.useState(false);
   const [highScore, setHighScore] = React.useState(0);
 
   React.useEffect(() => {
@@ -54,11 +56,20 @@ export default () => {
     })();
   }, []);
 
+  const handleStartGame = () => {
+    if (game.current) {
+      setGameStarted(true);
+      game.current.start();
+    }
+    else console.error("Failed loading game");
+  }
+
   const handleRestartGame = () => {
     if (game.current) {
       setGameOver(false);
       game.current.start();
     }
+    else console.error("Failed loading game");
   };
 
   return (
@@ -80,22 +91,11 @@ export default () => {
             )}
           </div>
 
-          {score <= 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center  bg-black/70 h-screen">
-              <div className="text-white text-4xl font-bold mb-4">Endless Runner Game</div>
-              <div className="italic text-white mb-4">Use arrow keys to move and jump</div>
-              <Button
-                className="bg-blue-600 text-white"
-                onClick={handleRestartGame}
-              >
-                Start Game
-              </Button>
-            </div>
-          )}
+          {!gameStarted && (<StartGameDialog onStart={handleStartGame}/>)}
           
-          {score > 0 && gameOver && (<RestartGameDialog onRestart={() => handleRestartGame()}></RestartGameDialog>)}
+          {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame}/>)}
   
-          {score > 0 && !gameOver && (
+          {gameStarted && !gameOver && (
             <div className="text-sm text-white/70 mt-2">
               <p>⬅️ ➡️ Arrow keys to move side to side</p>
               <p>⬆️ or Space to jump</p>
