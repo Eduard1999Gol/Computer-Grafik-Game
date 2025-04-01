@@ -54,7 +54,7 @@ export class ObstacleManager {
     this.obstacles.push({
       position: new Vector3([
         xPos, 
-        obstacleType === 'barrier' ? 1.25 : 0, // Adjusted y position for taller barriers
+        obstacleType === 'barrier' ? 1.25 : -2, // Adjusted y position for holes to be at ground level
         -this.spawnDistance
       ]), // Far ahead
       size: obstacleSize,
