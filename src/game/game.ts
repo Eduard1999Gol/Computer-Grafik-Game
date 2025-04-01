@@ -3,7 +3,7 @@ import fragmentShaderSource from './shaders/fragment.glsl';
 import { ObstacleManager } from './obstacle-manager';
 import { Renderer } from './renderer';
 import { Player } from './player';
-import { compileShaderProgram } from './shaders/utils';
+import { compileShaderProgram } from '../lib/utils';
 
 export class EndlessRunnerGame {
   private gl: WebGL2RenderingContext;

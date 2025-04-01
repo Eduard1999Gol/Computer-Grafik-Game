@@ -178,8 +178,8 @@ export class Renderer {
    */
   private updateViewMatrix(): void {
     // Camera parameters
-    const eye = [0, 20, 10]; // Camera position: higher and further back
-    const center = [0, 0, -5]; // Look slightly ahead of the player
+    const eye = [0, 10, 20]; // Camera position: higher and further back
+    const center = [0, 5, 0]; // Look slightly ahead of the player
     const up = [0, 1, 0]; // Up direction
     
     // Calculate view matrix
