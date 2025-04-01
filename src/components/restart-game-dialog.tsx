@@ -27,7 +27,14 @@ export function RestartGameDialog({ onRestart }: RestartGameDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Restart Game</Button>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Game Over</DialogTitle>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline">Restart Game</Button>
+          </DialogFooter>
+        </DialogContent>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

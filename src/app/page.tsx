@@ -1,11 +1,11 @@
 "use client"; // ensure our game runs in the frontend
 
 import { EndlessRunnerGame } from '@/game/game';
-import { CardButton } from '@/ui/card-button';
-import { Panel } from "@/ui/panel";
-import { Label } from "@/ui/label";
 import React from "react";
 import { RestartGameDialog } from '@/components/restart-game-dialog';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { DialogContent, DialogTitle } from '@radix-ui/react-dialog';
 
 export default () => {
   const game = React.useRef<EndlessRunnerGame | null>(null);
@@ -36,9 +36,6 @@ export default () => {
             setHighScore(finalScore);
           }
         });
-        
-        //game.current.start();
-        //console.log("Game started successfully");
         
         // Handle resize
         const handleResize = () => {
@@ -87,26 +84,16 @@ export default () => {
             <div className="absolute inset-0 flex flex-col items-center justify-center  bg-black/70 h-screen">
               <div className="text-white text-4xl font-bold mb-4">Endless Runner Game</div>
               <div className="italic text-white mb-4">Use arrow keys to move and jump</div>
-              <button
-                className="bg-blue-600 text-white px-6 py-2 rounded"
+              <Button
+                className="bg-blue-600 text-white"
                 onClick={handleRestartGame}
               >
                 Start Game
-              </button>
+              </Button>
             </div>
           )}
-  
-          {score > 0 && gameOver && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 h-screen">
-              <div className="text-red-400 text-4xl font-bold mb-4">Game Over!</div>
-              <button
-                className="bg-red-600 text-white px-6 py-2 rounded"
-                onClick={handleRestartGame}
-              >
-                Play Again
-              </button>
-            </div>
-          )}
+          
+          {score > 0 && gameOver && (<RestartGameDialog onRestart={() => handleRestartGame()}></RestartGameDialog>)}
   
           {score > 0 && !gameOver && (
             <div className="text-sm text-white/70 mt-2">
