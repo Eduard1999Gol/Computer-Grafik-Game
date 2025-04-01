@@ -6,6 +6,7 @@ import { cube_vertices, cube_indices, cube_normals, cube_texCoords } from "./cub
 export interface Obstacle {
   position: Vector3;
   scale?: Vector3;
+  size?: Vector3;  // Added size property to match obstacle-manager.ts
   type: string;
 }
 
@@ -255,9 +256,10 @@ export class Renderer {
         : this.entityConfigs.obstacle;
       
       // Render obstacle with appropriate configuration
+      // Use obstacle.size if available, otherwise fall back to obstacle.scale
       this.renderEntity(obstacle.position, {
         ...config,
-        scale: obstacle.scale
+        scale: obstacle.size || obstacle.scale
       });
     }
   }

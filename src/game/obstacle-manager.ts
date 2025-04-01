@@ -48,11 +48,15 @@ export class ObstacleManager {
     // Create a new obstacle
     const obstacleType = Math.random() > 0.3 ? 'barrier' : 'hole';
     const obstacleSize = obstacleType === 'barrier' 
-      ? new Vector3([1.8, 1, 1])  // Barriers have height
-      : new Vector3([1.8, 0.1, 1]); // Holes are flat
+      ? new Vector3([0.8, 2.5, 0.3])  // Reduced width from 1.2 to 0.8 for thinner barriers
+      : new Vector3([1.2, 0.1, 1]); // Holes remain the same
     
     this.obstacles.push({
-      position: new Vector3([xPos, obstacleType === 'barrier' ? 0.5 : 0, -this.spawnDistance]), // Far ahead
+      position: new Vector3([
+        xPos, 
+        obstacleType === 'barrier' ? 1.25 : 0, // Adjusted y position for taller barriers
+        -this.spawnDistance
+      ]), // Far ahead
       size: obstacleSize,
       lane: lane,
       type: obstacleType
@@ -65,17 +69,16 @@ export class ObstacleManager {
     const playerSize = player.size;
     
      for (const obstacle of this.obstacles) {
-       console.log(this.obstacles);
-      
        // Only check obstacles close to the player (z-axis)
        if (Math.abs(obstacle.position[2]) < 2) {
          // Check if player and obstacle are in the same lane (x-axis)
-         if (Math.abs(obstacle.position[0] - playerPos[0]) < 1.5) {
+         // Adjust collision width to match the new barrier width
+         if (Math.abs(obstacle.position[0] - playerPos[0]) < (obstacle.type === 'barrier' ? 0.7 : 1.0)) {
            // Vertical collision depends on obstacle type (y-axis)
-           if (obstacle.type === 'barrier' && playerPos[1] < obstacle.position[1] + obstacle.size[1]) {
-             return true; // Collision with barrier
-           } else if (obstacle.type === 'hole' && playerPos[1] <= 0.1) {
-             return true; // Fell into a hole
+           if (obstacle.type === 'barrier' && playerPos[1] < obstacle.position[1] + obstacle.size[1] - 1.25) {
+             return true; // Collision with barrier (adjusted for new height)
+           } else if (obstacle.type === 'hole' && playerPos[1] <= -1.9) {
+             return true; // Fell into a hole (adjusted for new hole position)
            }
          }
        }
