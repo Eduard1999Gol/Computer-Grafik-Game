@@ -4,9 +4,6 @@ import { EndlessRunnerGame } from '@/game/game';
 import React from "react";
 import { RestartGameDialog } from '@/components/restart-game-dialog';
 import { StartGameDialog } from '@/components/start-game-dialog';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogFooter, DialogHeader } from '@/components/ui/dialog'
-import { DialogContent, DialogTitle } from '@radix-ui/react-dialog';
 
 export default () => {
   const game = React.useRef<EndlessRunnerGame | null>(null);
