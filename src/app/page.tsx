@@ -1,10 +1,11 @@
 "use client"; // ensure our game runs in the frontend
 
 import { EndlessRunnerGame } from '@/game/game';
-import { CardButton } from '@/ui/card-button';
-import { Panel } from "@/ui/panel";
 import React from "react";
 import { RestartGameDialog } from '@/components/restart-game-dialog';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { DialogContent, DialogTitle } from '@radix-ui/react-dialog';
 
 export default () => {
   const game = React.useRef<EndlessRunnerGame | null>(null);
@@ -36,9 +37,6 @@ export default () => {
           }
         });
         
-        game.current.start();
-        console.log("Game started successfully");
-        
         // Handle resize
         const handleResize = () => {
           if (canvas.current && game.current) {
@@ -64,15 +62,14 @@ export default () => {
   };
 
   return (
-    <>
-      <canvas className="h-full w-full" ref={canvas} />
-      
-      <Panel reduceTopPadding>
-        <div className="flex w-full flex-col">
-          <span className="text-white text-lg font-bold">3D Runner Game</span>
-          <span className="italic text-white mb-2">Use arrow keys to move and jump</span>
-          
-          <div className="flex justify-between items-center mb-4">
+    <div className="relative h-screen w-screen">
+      <canvas className="absolute inset-0 h-full w-full" ref={canvas} />
+  
+      <div className="absolute top-0 left-0 w-full p-4">
+        <div className="flex w-full flex-col items-center">
+          <span className="text-white text-lg font-bold">Endless Runner Game</span>
+  
+          <div className="flex justify-between w-full max-w-md items-center mb-4">
             <div className="text-white">
               <span className="font-bold">Score:</span> {score}
             </div>
@@ -82,27 +79,31 @@ export default () => {
               </div>
             )}
           </div>
-          
-          {gameOver && (
-            <div className="mt-2">
-              <div className="text-red-400 font-bold mb-4">Game Over!</div>
-              <CardButton
-                className="bg-jgu-red text-white p-2 rounded"
+
+          {score <= 0 && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center  bg-black/70 h-screen">
+              <div className="text-white text-4xl font-bold mb-4">Endless Runner Game</div>
+              <div className="italic text-white mb-4">Use arrow keys to move and jump</div>
+              <Button
+                className="bg-blue-600 text-white"
                 onClick={handleRestartGame}
               >
-                Play Again
-              </CardButton>
+                Start Game
+              </Button>
             </div>
           )}
           
-          {!gameOver && (
+          {score > 0 && gameOver && (<RestartGameDialog onRestart={() => handleRestartGame()}></RestartGameDialog>)}
+  
+          {score > 0 && !gameOver && (
             <div className="text-sm text-white/70 mt-2">
               <p>⬅️ ➡️ Arrow keys to move side to side</p>
               <p>⬆️ or Space to jump</p>
             </div>
           )}
         </div>
-      </Panel>
-    </>
+      </div>
+    </div>
   );
+  
 };

@@ -64,22 +64,22 @@ export class ObstacleManager {
     const playerPos = player.position;
     const playerSize = player.size;
     
-    for (const obstacle of this.obstacles) {
-      console.log(this.obstacles);
+     for (const obstacle of this.obstacles) {
+       console.log(this.obstacles);
       
-      // Only check obstacles close to the player (z-axis)
-      if (Math.abs(obstacle.position[2]) < 2) {
-        // Check if player and obstacle are in the same lane (x-axis)
-        if (Math.abs(obstacle.position[0] - playerPos[0]) < 1.5) {
-          // Vertical collision depends on obstacle type (y-axis)
-          if (obstacle.type === 'barrier' && playerPos[1] < obstacle.position[1] + obstacle.size[1]) {
-            return true; // Collision with barrier
-          } else if (obstacle.type === 'hole' && playerPos[1] <= 0.1) {
-            return true; // Fell into a hole
-          }
-        }
-      }
-    }
+       // Only check obstacles close to the player (z-axis)
+       if (Math.abs(obstacle.position[2]) < 2) {
+         // Check if player and obstacle are in the same lane (x-axis)
+         if (Math.abs(obstacle.position[0] - playerPos[0]) < 1.5) {
+           // Vertical collision depends on obstacle type (y-axis)
+           if (obstacle.type === 'barrier' && playerPos[1] < obstacle.position[1] + obstacle.size[1]) {
+             return true; // Collision with barrier
+           } else if (obstacle.type === 'hole' && playerPos[1] <= 0.1) {
+             return true; // Fell into a hole
+           }
+         }
+       }
+     }
     
     return false;
   }
