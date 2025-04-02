@@ -9,6 +9,7 @@ varying vec3 vPosition;
 uniform vec3 lightPosition;
 uniform vec3 diffuseColor;
 uniform sampler2D uTexture;
+uniform int u_useTexture;
 
 void main() {
     vec3 normal = normalize(vNormal);
@@ -19,5 +20,10 @@ void main() {
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = (ambient + diff) * diffuseColor;
     
-    gl_FragColor = vec4(diffuse, 1.0);
+    if (u_useTexture == 1) {
+        vec4 texColor = texture2D(uTexture, vTexCoord);
+        gl_FragColor = vec4(diffuse * texColor.rgb, texColor.a);
+    } else {
+        gl_FragColor = vec4(diffuse, 1.0);
+    }
 }

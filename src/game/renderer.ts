@@ -28,6 +28,12 @@ interface GeometryBuffers {
 }
 
 export class Renderer {
+  // Add texture-related attributes
+  private texCoordAttributeLocation: number;
+  private textureUniformLocation: WebGLUniformLocation | null;
+  private useTextureUniformLocation: WebGLUniformLocation | null;
+private groundTexture: WebGLTexture | null = null;
+
   // Camera and projection matrices
   private projectionMatrix: Float32Array;
   private viewMatrix: Float32Array;
@@ -58,6 +64,11 @@ export class Renderer {
     // Initialize matrices
     this.projectionMatrix = new Float32Array(16);
     this.viewMatrix = new Float32Array(16);
+
+    // Get texture-related attribute and uniform locations
+    this.texCoordAttributeLocation = gl.getAttribLocation(shaderProgram, 'a_texcoord');
+    this.textureUniformLocation = gl.getUniformLocation(shaderProgram, 'u_texture');
+    this.useTextureUniformLocation = gl.getUniformLocation(shaderProgram, 'u_useTexture');
     
     // Initialize rendering pipeline
     this.setupShaderLocations();
@@ -277,6 +288,13 @@ export class Renderer {
       this.projectionMatrix
     );
   }
+
+  /**
+   * Set a texture for the ground
+   */
+  public setGroundTexture(texture: WebGLTexture): void {
+    this.groundTexture = texture;
+  }
   
   /**
    * Render the player entity
@@ -284,9 +302,30 @@ export class Renderer {
   private renderPlayer(player: Player): void {
     const config = this.entityConfigs.player;
     const position = player.position || new Vector3(0, 0, 0);
+
+    const texture = player.getTexture();
+    const useTexture = texture !== null;
     
+    // Set texture state for player
+    this.gl.uniform1i(this.useTextureUniformLocation, useTexture ? 1 : 0);
+
+    if (useTexture) {
+      // Activate texture unit 0
+      this.gl.activeTexture(this.gl.TEXTURE0);
+      // Bind the texture
+      this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+      // Tell the shader to use texture unit 0
+      this.gl.uniform1i(this.textureUniformLocation, 0);
+    }
+
     // Render player as a sphere at position
     this.renderEntity(position, config);
+    
+    // Reset texture state after rendering player
+    if (useTexture) {
+      // Turn off texturing for other entities
+      this.gl.uniform1i(this.useTextureUniformLocation, 0);
+    }
   }
   
   /**
@@ -312,12 +351,31 @@ export class Renderer {
   private renderGround(): void {
     // Placeholder for ground rendering
     const groundPosition = new Vector3(0, -2, 0);
-    const groundScale = new Vector3(20, 0.1, 100);
+    const groundScale = new Vector3(50, 0.4, 100);
+
+    const useTexture = this.groundTexture !== null;
+    
+    // Set texture state for ground
+    this.gl.uniform1i(this.useTextureUniformLocation, useTexture ? 1 : 0);
+
+    if (useTexture) {
+      // Activate texture unit 0
+      this.gl.activeTexture(this.gl.TEXTURE0);
+      // Bind the texture
+      this.gl.bindTexture(this.gl.TEXTURE_2D, this.groundTexture);
+      // Tell the shader to use texture unit 0
+      this.gl.uniform1i(this.textureUniformLocation, 0);
+    }
     
     this.renderEntity(groundPosition, {
       ...this.entityConfigs.ground,
       scale: groundScale
     });
+
+    // Reset texture state after rendering ground if it was used
+    if (useTexture) {
+      this.gl.uniform1i(this.useTextureUniformLocation, 0);
+    }
   }
   
   /**

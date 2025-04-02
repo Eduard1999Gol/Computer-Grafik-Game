@@ -58,9 +58,6 @@ export class ObstacleManager {
       obstacleType = 'hole';
     }
 
-    // original sizes:
-    // barrier: 1.8, 1, 1
-    // holes: 1.8, 0.1, 1
     let obstacleSize = new Vector3();
     switch (obstacleType) {
       case 'hole':
@@ -112,7 +109,6 @@ export class ObstacleManager {
       switch (obstacle.type) {
         case 'hole':
           if (yPosPlayer <= 0) {
-            console.log("xPl: %f, xOb: %f", xPosPlayer, xPosObstacle);
             console.log("yPl: %f, yOb: %f", yPosPlayer, yPosObstacle);
             console.log("zPl: %f, zOb: %f", zPosPlayer, zPosObstacle);
             return true;

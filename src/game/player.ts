@@ -7,6 +7,17 @@ export class Player {
   lane: number; // 0 = left, 1 = center, 2 = right
   isJumping: boolean;
   jumpCooldown: number = 0;
+  private texture: WebGLTexture | null = null;
+
+  // Add method to set texture
+  public setTexture(texture: WebGLTexture): void {
+    this.texture = texture;
+  }
+  
+  // Add method to get texture
+  public getTexture(): WebGLTexture | null {
+    return this.texture;
+  }
   
   constructor() {
     this.position = new Vector3([0, 0, 0]);
