@@ -149,6 +149,9 @@ export class EndlessRunnerGame {
     // Update obstacles
     this.obstacleManager.update(deltaTime, this.gameSpeed);
     
+    // Update ground position for scrolling effect
+    this.renderer.updateGroundPosition(deltaTime, this.gameSpeed);
+    
     // Increase difficulty over time
     this.gameSpeed += deltaTime * 0.01;
     

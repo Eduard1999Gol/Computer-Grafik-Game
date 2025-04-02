@@ -30,6 +30,7 @@ interface RenderConfig {
   geometry?: 'cube' | 'sphere';
   useTexture?: boolean;
   textureName?: string;
+  textureOffset?: number[]; // Add texture offset for scrolling ground
 }
 
 export class Renderer {
@@ -51,6 +52,10 @@ export class Renderer {
   
   // Texture manager
   private textureManager: TextureManager;
+  
+  // Ground tracking
+  private groundPosition: number = 0;
+  private groundTextureOffset: number = 0;
   
   // Rendering configurations
   private readonly entityConfigs = {
@@ -95,6 +100,24 @@ export class Renderer {
   }
   
   /**
+   * Update ground position for scrolling effect
+   */
+  public updateGroundPosition(delta: number, gameSpeed: number): void {
+    // Update ground position for scrolling effect
+    this.groundPosition += delta * gameSpeed; // Adjust multiplier for scroll speed
+    
+    // Update texture offset for scrolling ground texture
+    // Add a scaling factor (0.5) to match obstacle movement speed
+    const textureScrollFactor = 0.07;
+    this.groundTextureOffset += delta * gameSpeed * textureScrollFactor;
+    
+    // Reset when it gets too large to avoid floating point precision issues
+    if (this.groundTextureOffset > 100) {
+      this.groundTextureOffset = 0;
+    }
+  }
+  
+  /**
    * Set up attribute and uniform locations from shader program
    */
   private setupShaderLocations(): void {
@@ -113,7 +136,8 @@ export class Renderer {
       diffuseColor: this.gl.getUniformLocation(this.shaderProgram, 'diffuseColor'),
       lightPosition: this.gl.getUniformLocation(this.shaderProgram, 'lightPosition'),
       uTexture: this.gl.getUniformLocation(this.shaderProgram, 'uTexture'),
-      u_useTexture: this.gl.getUniformLocation(this.shaderProgram, 'u_useTexture')
+      u_useTexture: this.gl.getUniformLocation(this.shaderProgram, 'u_useTexture'),
+      u_textureOffset: this.gl.getUniformLocation(this.shaderProgram, 'u_textureOffset')
     };
   }
   
@@ -218,15 +242,19 @@ export class Renderer {
    * Render the ground
    */
   private renderGround(): void {
-    // Placeholder for ground rendering
+    // Calculate ground position based on scrolling
     const groundPosition = new Vector3(0, -5, 0);
     const groundScale = new Vector3(50, 0.4, 100);
+    
+    // Define texture offset for scrolling ground (using Z direction for forward movement)
+    const textureOffset = [0, this.groundTextureOffset]; // Second value controls forward scrolling
     
     this.renderEntity(groundPosition, {
       ...this.entityConfigs.ground,
       scale: groundScale,
       useTexture: true,
-      textureName: 'ground'
+      textureName: 'ground',
+      textureOffset: textureOffset
     });
   }
   
@@ -242,6 +270,13 @@ export class Renderer {
                       this.textureManager.getTexture(config.textureName);
     
     this.gl.uniform1i(this.uniformLocations.u_useTexture, useTexture ? 1 : 0);
+    
+    // Set texture offset if provided (for scrolling textures)
+    if (config.textureOffset) {
+      this.gl.uniform2fv(this.uniformLocations.u_textureOffset, config.textureOffset);
+    } else {
+      this.gl.uniform2fv(this.uniformLocations.u_textureOffset, [0, 0]);
+    }
     
     if (useTexture && config.textureName) {
       const texture = this.textureManager.getTexture(config.textureName);
@@ -284,12 +319,14 @@ export class Renderer {
       this.drawCube();
     }
   }
+  
   /**
    * Draw a cube using the current bind buffers
    */
   private drawCube(): void {
     drawCube(this.gl, this.cubeGeometry, this.attribLocations);
   }
+  
   /**
    * Draw a sphere using the sphere buffers
    */
