@@ -4,6 +4,7 @@ import { EndlessRunnerGame } from '@/game/game';
 import React from "react";
 import { RestartGameDialog } from '@/components/restart-game-dialog';
 import { StartGameDialog } from '@/components/start-game-dialog';
+import { DifficultyButton } from '@/components/difficulty-button';
 
 export default () => {
   const game = React.useRef<EndlessRunnerGame | null>(null);
@@ -12,6 +13,7 @@ export default () => {
   const [gameOver, setGameOver] = React.useState(false);
   const [gameStarted, setGameStarted] = React.useState(false);
   const [highScore, setHighScore] = React.useState(0);
+  const [hardDifficulty, setHardDifficulty] = React.useState(false);
 
   React.useEffect(() => {
     (async () => {
@@ -69,6 +71,13 @@ export default () => {
     else console.error("Failed loading game");
   };
 
+  const changeDifficulty = () => {
+    if (game.current) {
+      setHardDifficulty(!hardDifficulty);
+    }
+    else console.error("Failed loading game");
+  }
+
   return (
     <div className="relative h-screen w-screen">
       <canvas className="absolute inset-0 h-full w-full" ref={canvas} />
@@ -78,6 +87,7 @@ export default () => {
           <span className="text-white text-lg font-bold">Endless Runner Game</span>
   
           <div className="flex justify-between w-full max-w-md items-center mb-4">
+            {gameStarted && <DifficultyButton changeDifficulty={changeDifficulty}></DifficultyButton>}
             <div className="text-white">
               <span className="font-bold">Score:</span> {score}
             </div>
