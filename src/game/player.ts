@@ -7,17 +7,6 @@ export class Player {
   lane: number; // 0 = left, 1 = center, 2 = right
   isJumping: boolean;
   jumpCooldown: number = 0;
-  private texture: WebGLTexture | null = null;
-
-  // Add method to set texture
-  public setTexture(texture: WebGLTexture): void {
-    this.texture = texture;
-  }
-  
-  // Add method to get texture
-  public getTexture(): WebGLTexture | null {
-    return this.texture;
-  }
   
   constructor() {
     this.position = new Vector3([0, 0, 0]);
@@ -42,7 +31,7 @@ export class Player {
   jump(): void {
     // Only allow jump if player is on the ground and cooldown is over
     if (!this.isJumping && this.jumpCooldown <= 0) {
-      this.velocity[1] = 12.0; // Jump velocity - increased for better feelmp higher
+      this.velocity[1] = 12.0; // Jump velocity - increased for better feel
       this.isJumping = true;
       this.jumpCooldown = 0.1; // Small cooldown to prevent double jumps
     }
@@ -56,7 +45,7 @@ export class Player {
     
     // Apply gravity when in the air
     if (this.isJumping || this.position[1] > 0) {
-      this.velocity[1] -= 25.0 * deltaTime; // Increased from 20.0 to make the jump feel less floaty
+      this.velocity[1] -= 25.0 * deltaTime; // Increased gravity for better feel
       this.position[1] += this.velocity[1] * deltaTime;
       
       // Check if landed
@@ -70,11 +59,5 @@ export class Player {
     // Update lane position (smooth transition)
     const targetX = (this.lane - 1) * 2; // Convert lane to x position (-2, 0, 2)
     this.position[0] += (targetX - this.position[0]) * 10 * deltaTime;
-  }
-  
-  getModelMatrix(): Float32Array {
-    // In a real implementation, this would create and return a model matrix
-    // based on the player's position, rotation, and scale
-    return new Float32Array(16); // Simple placeholder
   }
 }

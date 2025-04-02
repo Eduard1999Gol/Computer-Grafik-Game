@@ -111,6 +111,8 @@ export class ObstacleManager {
           if (yPosPlayer <= 0) {
             console.log("yPl: %f, yOb: %f", yPosPlayer, yPosObstacle);
             console.log("zPl: %f, zOb: %f", zPosPlayer, zPosObstacle);
+            console.log(obstacle.type);
+            
             return true;
           }
           break;

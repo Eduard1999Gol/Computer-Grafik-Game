@@ -1,13 +1,25 @@
 import { Player } from './player';
 import { Vector3 } from '@math.gl/core';
 import { normalMatrix } from '@/utility';
-import { cube_vertices, cube_indices, cube_normals, cube_texCoords } from "./cube_data"
-import { sphere_vertices, sphere_indices, sphere_normals, sphere_texCoords } from "./sphere_data"
+import { 
+  createPerspectiveMatrix, 
+  createViewMatrix, 
+  createModelViewMatrix 
+} from '@/lib/matrix-utils';
+import { TextureManager } from '@/lib/texture-manager';
+import { 
+  drawCube, 
+  drawSphere, 
+  createCubeGeometry, 
+  createSphereGeometry, 
+  GeometryBuffers, 
+  AttributeLocations 
+} from '../lib/renderer-draw-utils';
 
 export interface Obstacle {
   position: Vector3;
   scale?: Vector3;
-  size?: Vector3;  // Added size property to match obstacle-manager.ts
+  size?: Vector3;
   type: string;
 }
 
@@ -16,35 +28,29 @@ interface RenderConfig {
   color: number[];
   scale?: Vector3;
   geometry?: 'cube' | 'sphere';
-}
-
-// Buffer configuration object
-interface GeometryBuffers {
-  vertex: WebGLBuffer | null;
-  normal: WebGLBuffer | null;
-  texCoord: WebGLBuffer | null;
-  index: WebGLBuffer | null;
-  indexCount: number;
+  useTexture?: boolean;
+  textureName?: string;
 }
 
 export class Renderer {
-  // Add texture-related attributes
-  private texCoordAttributeLocation: number;
-  private textureUniformLocation: WebGLUniformLocation | null;
-  private useTextureUniformLocation: WebGLUniformLocation | null;
-private groundTexture: WebGLTexture | null = null;
-
-  // Camera and projection matrices
-  private projectionMatrix: Float32Array;
-  private viewMatrix: Float32Array;
-  
   // Shader locations
-  private attribLocations: { [key: string]: number } = {};
+  private attribLocations: AttributeLocations & { [key: string]: number } = {
+    position: 0,
+    normal: 0,
+    texCoord: 0
+  };
   private uniformLocations: { [key: string]: WebGLUniformLocation | null } = {};
   
   // Geometry buffers
   private cubeGeometry: GeometryBuffers;
   private sphereGeometry: GeometryBuffers;
+  
+  // Matrices
+  private projectionMatrix: Float32Array;
+  private viewMatrix: Float32Array;
+  
+  // Texture manager
+  private textureManager: TextureManager;
   
   // Rendering configurations
   private readonly entityConfigs = {
@@ -61,23 +67,31 @@ private groundTexture: WebGLTexture | null = null;
     private gl: WebGL2RenderingContext, 
     private shaderProgram: WebGLProgram
   ) {
+    // Initialize texture manager
+    this.textureManager = new TextureManager(gl);
+    
     // Initialize matrices
     this.projectionMatrix = new Float32Array(16);
     this.viewMatrix = new Float32Array(16);
-
-    // Get texture-related attribute and uniform locations
-    this.texCoordAttributeLocation = gl.getAttribLocation(shaderProgram, 'a_texcoord');
-    this.textureUniformLocation = gl.getUniformLocation(shaderProgram, 'u_texture');
-    this.useTextureUniformLocation = gl.getUniformLocation(shaderProgram, 'u_useTexture');
     
     // Initialize rendering pipeline
     this.setupShaderLocations();
-    this.cubeGeometry = this.createCubeGeometry();
-    this.sphereGeometry = this.createSphereGeometry();
+    this.cubeGeometry = createCubeGeometry(this.gl);
+    this.sphereGeometry = createSphereGeometry(this.gl);
     this.initializeRenderState();
     
     // Set initial projection matrix
     this.updateProjection(this.gl.canvas.width / this.gl.canvas.height);
+  }
+  
+  /**
+   * Load textures for the game
+   */
+  public async loadTextures(): Promise<void> {
+    await this.textureManager.loadTextures([
+      { name: 'player', url: '/assets/textures/blau_plastic.png' },
+      { name: 'ground', url: '/assets/textures/brick_floor.jpg' }
+    ]);
   }
   
   /**
@@ -98,7 +112,8 @@ private groundTexture: WebGLTexture | null = null;
       normalMatrix: this.gl.getUniformLocation(this.shaderProgram, 'normalMatrix'),
       diffuseColor: this.gl.getUniformLocation(this.shaderProgram, 'diffuseColor'),
       lightPosition: this.gl.getUniformLocation(this.shaderProgram, 'lightPosition'),
-      uTexture: this.gl.getUniformLocation(this.shaderProgram, 'uTexture')
+      uTexture: this.gl.getUniformLocation(this.shaderProgram, 'uTexture'),
+      u_useTexture: this.gl.getUniformLocation(this.shaderProgram, 'u_useTexture')
     };
   }
   
@@ -112,90 +127,6 @@ private groundTexture: WebGLTexture | null = null;
   }
   
   /**
-   * Create cube geometry and return buffer objects
-   */
-  private createCubeGeometry(): GeometryBuffers {
-    // Define cube vertices (positions)
-    const vertices = cube_vertices
-    
-    // Define normals for lighting
-    const normals = cube_normals
-    
-    // Define texture coordinates
-    const texCoords = cube_texCoords
-    
-    // Define indices for the cube
-    const indices = cube_indices
-
-    // Create and bind vertex buffer
-    const vertexBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
-    
-    // Create and bind normal buffer
-    const normalBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, normals, this.gl.STATIC_DRAW);
-    
-    // Create and bind texture coordinate buffer
-    const texCoordBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, texCoords, this.gl.STATIC_DRAW);
-    
-    // Create and bind index buffer
-    const indexBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indices, this.gl.STATIC_DRAW);
-    
-    return {
-      vertex: vertexBuffer,
-      normal: normalBuffer,
-      texCoord: texCoordBuffer,
-      index: indexBuffer,
-      indexCount: indices.length
-    };
-  }
-  
-  /**
-   * Create sphere geometry and return buffer objects
-   */
-  private createSphereGeometry(): GeometryBuffers {
-    // Use the sphere data
-    const vertices = sphere_vertices;
-    const normals = sphere_normals;
-    const texCoords = sphere_texCoords;
-    const indices = sphere_indices;
-
-    // Create and bind vertex buffer
-    const vertexBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
-    
-    // Create and bind normal buffer
-    const normalBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, normals, this.gl.STATIC_DRAW);
-    
-    // Create and bind texture coordinate buffer
-    const texCoordBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, texCoords, this.gl.STATIC_DRAW);
-    
-    // Create and bind index buffer
-    const indexBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indices, this.gl.STATIC_DRAW);
-    
-    return {
-      vertex: vertexBuffer,
-      normal: normalBuffer,
-      texCoord: texCoordBuffer,
-      index: indexBuffer,
-      indexCount: indices.length
-    };
-  }
-  
-  /**
    * Update projection matrix based on aspect ratio
    */
   public updateProjection(aspectRatio: number): void {
@@ -204,26 +135,8 @@ private groundTexture: WebGLTexture | null = null;
     const near = 0.1;
     const far = 100.0;
     
-    // Calculate perspective projection matrix
-    const f = 1.0 / Math.tan(fieldOfView / 2);
-    const rangeInv = 1 / (near - far);
-    
-    this.projectionMatrix[0] = f / aspectRatio;
-    this.projectionMatrix[1] = 0;
-    this.projectionMatrix[2] = 0;
-    this.projectionMatrix[3] = 0;
-    this.projectionMatrix[4] = 0;
-    this.projectionMatrix[5] = f;
-    this.projectionMatrix[6] = 0;
-    this.projectionMatrix[7] = 0;
-    this.projectionMatrix[8] = 0;
-    this.projectionMatrix[9] = 0;
-    this.projectionMatrix[10] = (far + near) * rangeInv;
-    this.projectionMatrix[11] = -1;
-    this.projectionMatrix[12] = 0;
-    this.projectionMatrix[13] = 0;
-    this.projectionMatrix[14] = 2 * far * near * rangeInv;
-    this.projectionMatrix[15] = 0;
+    // Calculate perspective projection matrix using our utility
+    this.projectionMatrix = createPerspectiveMatrix(fieldOfView, aspectRatio, near, far);
     
     this.updateViewMatrix();
   }
@@ -237,27 +150,8 @@ private groundTexture: WebGLTexture | null = null;
     const center = [0, 5, 0]; // Look slightly ahead of the player
     const up = [0, 1, 0]; // Up direction
     
-    // Calculate view matrix
-    const z = this.normalizeVector(this.subtractVectors(eye, center));
-    const x = this.normalizeVector(this.crossVectors(up, z));
-    const y = this.normalizeVector(this.crossVectors(z, x));
-    
-    this.viewMatrix[0] = x[0];
-    this.viewMatrix[1] = y[0];
-    this.viewMatrix[2] = z[0];
-    this.viewMatrix[3] = 0;
-    this.viewMatrix[4] = x[1];
-    this.viewMatrix[5] = y[1];
-    this.viewMatrix[6] = z[1];
-    this.viewMatrix[7] = 0;
-    this.viewMatrix[8] = x[2];
-    this.viewMatrix[9] = y[2];
-    this.viewMatrix[10] = z[2];
-    this.viewMatrix[11] = 0;
-    this.viewMatrix[12] = -this.dotVectors(x, eye);
-    this.viewMatrix[13] = -this.dotVectors(y, eye);
-    this.viewMatrix[14] = -this.dotVectors(z, eye);
-    this.viewMatrix[15] = 1;
+    // Calculate view matrix using our utility
+    this.viewMatrix = createViewMatrix(eye, center, up);
   }
   
   /**
@@ -288,44 +182,19 @@ private groundTexture: WebGLTexture | null = null;
       this.projectionMatrix
     );
   }
-
-  /**
-   * Set a texture for the ground
-   */
-  public setGroundTexture(texture: WebGLTexture): void {
-    this.groundTexture = texture;
-  }
   
   /**
    * Render the player entity
    */
   private renderPlayer(player: Player): void {
-    const config = this.entityConfigs.player;
-    const position = player.position || new Vector3(0, 0, 0);
-
-    const texture = player.getTexture();
-    const useTexture = texture !== null;
+    const config: RenderConfig = {
+      ...this.entityConfigs.player,
+      useTexture: true,
+      textureName: 'player'
+    };
     
-    // Set texture state for player
-    this.gl.uniform1i(this.useTextureUniformLocation, useTexture ? 1 : 0);
-
-    if (useTexture) {
-      // Activate texture unit 0
-      this.gl.activeTexture(this.gl.TEXTURE0);
-      // Bind the texture
-      this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-      // Tell the shader to use texture unit 0
-      this.gl.uniform1i(this.textureUniformLocation, 0);
-    }
-
     // Render player as a sphere at position
-    this.renderEntity(position, config);
-    
-    // Reset texture state after rendering player
-    if (useTexture) {
-      // Turn off texturing for other entities
-      this.gl.uniform1i(this.useTextureUniformLocation, 0);
-    }
+    this.renderEntity(player.position, config);
   }
   
   /**
@@ -350,32 +219,15 @@ private groundTexture: WebGLTexture | null = null;
    */
   private renderGround(): void {
     // Placeholder for ground rendering
-    const groundPosition = new Vector3(0, -2, 0);
+    const groundPosition = new Vector3(0, -5, 0);
     const groundScale = new Vector3(50, 0.4, 100);
-
-    const useTexture = this.groundTexture !== null;
-    
-    // Set texture state for ground
-    this.gl.uniform1i(this.useTextureUniformLocation, useTexture ? 1 : 0);
-
-    if (useTexture) {
-      // Activate texture unit 0
-      this.gl.activeTexture(this.gl.TEXTURE0);
-      // Bind the texture
-      this.gl.bindTexture(this.gl.TEXTURE_2D, this.groundTexture);
-      // Tell the shader to use texture unit 0
-      this.gl.uniform1i(this.textureUniformLocation, 0);
-    }
     
     this.renderEntity(groundPosition, {
       ...this.entityConfigs.ground,
-      scale: groundScale
+      scale: groundScale,
+      useTexture: true,
+      textureName: 'ground'
     });
-
-    // Reset texture state after rendering ground if it was used
-    if (useTexture) {
-      this.gl.uniform1i(this.useTextureUniformLocation, 0);
-    }
   }
   
   /**
@@ -385,8 +237,30 @@ private groundTexture: WebGLTexture | null = null;
     // Set entity color
     this.gl.uniform3fv(this.uniformLocations.diffuseColor, config.color);
     
+    // Handle textures
+    const useTexture = config.useTexture && config.textureName && 
+                      this.textureManager.getTexture(config.textureName);
+    
+    this.gl.uniform1i(this.uniformLocations.u_useTexture, useTexture ? 1 : 0);
+    
+    if (useTexture && config.textureName) {
+      const texture = this.textureManager.getTexture(config.textureName);
+      if (texture) {
+        // Activate texture unit 0
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        // Bind the texture
+        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+        // Tell the shader to use texture unit 0
+        this.gl.uniform1i(this.uniformLocations.uTexture, 0);
+      }
+    }
+    
     // Create model-view matrix
-    const modelViewMatrix = this.createModelViewMatrix(position, config.scale);
+    const modelViewMatrix = createModelViewMatrix(
+      this.viewMatrix, 
+      {x: position.x, y: position.y, z: position.z}, 
+      config.scale ? {x: config.scale.x, y: config.scale.y, z: config.scale.z} : undefined
+    );
     
     // Set model-view matrix uniform
     this.gl.uniformMatrix4fv(
@@ -410,169 +284,16 @@ private groundTexture: WebGLTexture | null = null;
       this.drawCube();
     }
   }
-  
-  /**
-   * Create model-view matrix for an entity
-   */
-  private createModelViewMatrix(position: Vector3, scale?: Vector3): Float32Array {
-    const modelViewMatrix = new Float32Array(16);
-    
-    // Start with view matrix
-    for (let i = 0; i < 16; i++) {
-      modelViewMatrix[i] = this.viewMatrix[i];
-    }
-    
-    // Apply position transformation
-    modelViewMatrix[12] += position.x;
-    modelViewMatrix[13] += position.y;
-    modelViewMatrix[14] += position.z;
-    
-    // Apply scale if provided
-    if (scale) {
-      // Note: This is a simplified approach. A proper implementation would
-      // use full matrix multiplication for accurate scaling
-      modelViewMatrix[0] *= scale.x;
-      modelViewMatrix[5] *= scale.y;
-      modelViewMatrix[10] *= scale.z;
-    }
-    
-    return modelViewMatrix;
-  }
-  
   /**
    * Draw a cube using the current bind buffers
    */
   private drawCube(): void {
-    const { vertex, normal, texCoord, index, indexCount } = this.cubeGeometry;
-    
-    if (!vertex || !normal || !texCoord || !index) return;
-    
-    // Bind position buffer
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertex);
-    this.gl.vertexAttribPointer(
-      this.attribLocations.position,
-      3,              // 3 components per vertex
-      this.gl.FLOAT,  // type of data
-      false,          // don't normalize
-      0,              // stride (0 = auto)
-      0               // offset
-    );
-    this.gl.enableVertexAttribArray(this.attribLocations.position);
-    
-    // Bind normal buffer
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normal);
-    this.gl.vertexAttribPointer(
-      this.attribLocations.normal,
-      3,              // 3 components per normal
-      this.gl.FLOAT,  // type of data
-      false,          // don't normalize
-      0,              // stride (0 = auto)
-      0               // offset
-    );
-    this.gl.enableVertexAttribArray(this.attribLocations.normal);
-    
-    // Bind texture coordinate buffer
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoord);
-    this.gl.vertexAttribPointer(
-      this.attribLocations.texCoord,
-      2,              // 2 components per texture coord
-      this.gl.FLOAT,  // type of data
-      false,          // don't normalize
-      0,              // stride (0 = auto)
-      0               // offset
-    );
-    this.gl.enableVertexAttribArray(this.attribLocations.texCoord);
-    
-    // Bind index buffer
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, index);
-    
-    // Draw the cube
-    this.gl.drawElements(
-      this.gl.TRIANGLES,
-      indexCount,
-      this.gl.UNSIGNED_SHORT,
-      0
-    );
+    drawCube(this.gl, this.cubeGeometry, this.attribLocations);
   }
-  
   /**
    * Draw a sphere using the sphere buffers
    */
   private drawSphere(): void {
-    const { vertex, normal, texCoord, index, indexCount } = this.sphereGeometry;
-    
-    if (!vertex || !normal || !texCoord || !index) return;
-    
-    // Bind position buffer
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertex);
-    this.gl.vertexAttribPointer(
-      this.attribLocations.position,
-      3,              // 3 components per vertex
-      this.gl.FLOAT,  // type of data
-      false,          // don't normalize
-      0,              // stride (0 = auto)
-      0               // offset
-    );
-    this.gl.enableVertexAttribArray(this.attribLocations.position);
-    
-    // Bind normal buffer
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normal);
-    this.gl.vertexAttribPointer(
-      this.attribLocations.normal,
-      3,              // 3 components per normal
-      this.gl.FLOAT,  // type of data
-      false,          // don't normalize
-      0,              // stride (0 = auto)
-      0               // offset
-    );
-    this.gl.enableVertexAttribArray(this.attribLocations.normal);
-    
-    // Bind texture coordinate buffer
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoord);
-    this.gl.vertexAttribPointer(
-      this.attribLocations.texCoord,
-      2,              // 2 components per texture coord
-      this.gl.FLOAT,  // type of data
-      false,          // don't normalize
-      0,              // stride (0 = auto)
-      0               // offset
-    );
-    this.gl.enableVertexAttribArray(this.attribLocations.texCoord);
-    
-    // Bind index buffer
-    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, index);
-    
-    // Draw the sphere
-    this.gl.drawElements(
-      this.gl.TRIANGLES,
-      indexCount,
-      this.gl.UNSIGNED_SHORT,
-      0
-    );
-  }
-  
-  // Vector helper methods
-  private normalizeVector(v: number[]): number[] {
-    const length = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    if (length > 0.00001) {
-      return [v[0] / length, v[1] / length, v[2] / length];
-    }
-    return [0, 0, 0];
-  }
-  
-  private subtractVectors(a: number[], b: number[]): number[] {
-    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-  }
-  
-  private crossVectors(a: number[], b: number[]): number[] {
-    return [
-      a[1] * b[2] - a[2] * b[1],
-      a[2] * b[0] - a[0] * b[2],
-      a[0] * b[1] - a[1] * b[0]
-    ];
-  }
-  
-  private dotVectors(a: number[], b: number[]): number {
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    drawSphere(this.gl, this.sphereGeometry, this.attribLocations);
   }
 }
