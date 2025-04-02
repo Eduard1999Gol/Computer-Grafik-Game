@@ -31,6 +31,7 @@ interface RenderConfig {
   useTexture?: boolean;
   textureName?: string;
   textureOffset?: number[]; // Add texture offset for scrolling ground
+  rotation?: number; // Add rotation parameter
 }
 
 export class Renderer {
@@ -108,7 +109,7 @@ export class Renderer {
     
     // Update texture offset for scrolling ground texture
     // Add a scaling factor (0.5) to match obstacle movement speed
-    const textureScrollFactor = 0.07;
+    const textureScrollFactor = 0.05;
     this.groundTextureOffset += delta * gameSpeed * textureScrollFactor;
     
     // Reset when it gets too large to avoid floating point precision issues
@@ -214,7 +215,8 @@ export class Renderer {
     const config: RenderConfig = {
       ...this.entityConfigs.player,
       useTexture: true,
-      textureName: 'player'
+      textureName: 'player',
+      rotation: player.rotation // Pass player's rotation to renderEntity
     };
     
     // Render player as a sphere at position
@@ -243,7 +245,7 @@ export class Renderer {
    */
   private renderGround(): void {
     // Calculate ground position based on scrolling
-    const groundPosition = new Vector3(0, -5, 0);
+    const groundPosition = new Vector3(0, -3, 0);
     const groundScale = new Vector3(50, 0.4, 100);
     
     // Define texture offset for scrolling ground (using Z direction for forward movement)
@@ -290,11 +292,12 @@ export class Renderer {
       }
     }
     
-    // Create model-view matrix
+    // Create model-view matrix with rotation if provided
     const modelViewMatrix = createModelViewMatrix(
       this.viewMatrix, 
       {x: position.x, y: position.y, z: position.z}, 
-      config.scale ? {x: config.scale.x, y: config.scale.y, z: config.scale.z} : undefined
+      config.scale ? {x: config.scale.x, y: config.scale.y, z: config.scale.z} : undefined,
+      config.rotation // Pass rotation to matrix creation function
     );
     
     // Set model-view matrix uniform
