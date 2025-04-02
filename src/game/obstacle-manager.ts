@@ -15,9 +15,11 @@ export class ObstacleManager {
   private initialSpawnDelay: number = 2.0; // Give player time to get ready
   private xCollisionDistance: number = 0.7; // Default distances between player and obstacle that leads to collision
   private zCollisionDistance: number = 1; 
-  constructor() {
+  private hardDifficulty: boolean;
+  constructor(hardDifficulty: boolean) {
     // Initial delay before spawning first obstacle
     this.spawnTimer = this.initialSpawnDelay;
+    this.hardDifficulty = hardDifficulty;
   }
   
   update(deltaTime: number, gameSpeed: number): void {
@@ -43,8 +45,9 @@ export class ObstacleManager {
   
   private spawnObstacle(): void {
     // Choose a random lane
-    const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
-    const xPos = (lane - 1) * 2; // Convert lane to x position (-2, 0, 2)
+    const laneCount = this.hardDifficulty ? 5 : 3
+    const lane = Math.floor(Math.random() * laneCount); // 0, 1, or 2
+    const xPos = (lane - Math.floor(laneCount / 2)) * 2; // Convert lane to x position, so that middle lane is x = 0 with distance 2 between lanes
     
     // Create a new obstacle
     let obstacleType: Obstacle['type'];

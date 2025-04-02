@@ -5,16 +5,20 @@ export class Player {
   velocity: Vector3;
   size: Vector3;
   lane: number; // 0 = left, 1 = center, 2 = right
+  laneCount: number;
   isJumping: boolean;
   jumpCooldown: number = 0;
   rotation: number = 0; // Current rotation angle in radians
+  hardDifficulty: boolean;
   
-  constructor() {
+  constructor(hardDifficulty: boolean) {
     this.position = new Vector3([0, 0, 0]);
     this.velocity = new Vector3([0, 0, 0]);
     this.size = new Vector3([0.5, 0.5, 0.5]); // Player size (width, height, depth)
-    this.lane = 1; // Start in center lane
+    this.lane = hardDifficulty ? 2 : 1; // Start in center lane
     this.isJumping = false;
+    this.hardDifficulty = hardDifficulty;
+    this.laneCount = hardDifficulty ? 5 : 3;
   }
   
   moveLeft(): void {
@@ -24,7 +28,7 @@ export class Player {
   }
   
   moveRight(): void {
-    if (this.lane < 2) {
+    if (this.lane < this.laneCount - 1) {
       this.lane++;
     }
   }
@@ -58,7 +62,7 @@ export class Player {
     }
     
     // Update lane position (smooth transition)
-    const targetX = (this.lane - 1) * 2; // Convert lane to x position (-2, 0, 2)
+    const targetX = (this.lane - Math.floor(this.laneCount / 2)) * 2; // Convert lane to x position (-2, 0, 2)
     const previousX = this.position[0];
     this.position[0] += (targetX - this.position[0]) * 10 * deltaTime;
     
