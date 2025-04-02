@@ -63,7 +63,8 @@ export class Renderer {
     player: { color: [1, 1, 1.0], geometry: 'sphere' },
     barrier: { color: [0.8, 0.2, 0.2] },
     obstacle: { color: [0.1, 0.1, 0.1] },
-    ground: { color: [1, 1, 1] }
+    ground: { color: [1, 1, 1] },
+    hole: { color: [0.05, 0.05, 0.05], geometry: 'sphere' } // Add specific config for holes
   };
   
   // Light configuration
@@ -228,15 +229,45 @@ export class Renderer {
    */
   private renderObstacles(obstacles: Obstacle[]): void {
     for (const obstacle of obstacles) {
-      const config = obstacle.type === 'barrier' 
-        ? this.entityConfigs.barrier 
-        : this.entityConfigs.obstacle;
+      let config;
       
-      // Render obstacle with appropriate configuration
-      this.renderEntity(obstacle.position, {
-        ...config,
-        scale: obstacle.size || obstacle.scale
-      });
+      // Determine the appropriate configuration based on obstacle type
+      if (obstacle.type === 'hole') {
+        config = this.entityConfigs.hole;
+      } else if (obstacle.type === 'barrier') {
+        config = this.entityConfigs.barrier;
+      } else {
+        config = this.entityConfigs.obstacle;
+      }
+      
+      // Apply specific adjustments for hole obstacles
+      if (obstacle.type === 'hole') {
+        // Create a flattened sphere for the hole
+        const holePosition = new Vector3([
+          obstacle.position[0],
+          obstacle.position[1] + 0.05, // Raise slightly to be visible on ground
+          obstacle.position[2]
+        ]);
+        
+        // Use the obstacle's width for diameter, but make it very flat
+        const holeScale = new Vector3([
+          obstacle.size?.[0] || 1.5,
+          0.1, // Very flat
+          obstacle.size?.[2] || 1.5
+        ]);
+        
+        // Render the hole
+        this.renderEntity(holePosition, {
+          ...config,
+          scale: holeScale
+        });
+      } else {
+        // Render regular obstacle with appropriate configuration
+        this.renderEntity(obstacle.position, {
+          ...config,
+          scale: obstacle.size || obstacle.scale
+        });
+      }
     }
   }
   
