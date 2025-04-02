@@ -96,9 +96,9 @@ export default () => {
             </div>
           </div>
 
-          {!gameStarted && (<StartGameDialog onStart={handleStartGame} changeDifficulty={changeDifficulty}/>)}
+          {!gameStarted && (<StartGameDialog onStart={handleStartGame} changeDifficulty={changeDifficulty} hardDifficulty={hardDifficulty}/>)}
           
-          {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame} changeDifficulty={changeDifficulty}/>)}
+          {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame} changeDifficulty={changeDifficulty} hardDifficulty={hardDifficulty}/>)}
   
           {gameStarted && !gameOver && (
             <div className="text-sm text-white/70 mt-2">

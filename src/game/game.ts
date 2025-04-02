@@ -17,7 +17,6 @@ export class EndlessRunnerGame {
   private gameSpeed: number = 1;
   private score: number = 0;
   private gameOver: boolean = false;
-  private gameStarted: boolean = false;
   private hardDifficulty: boolean = false;
   
   // Add callbacks for game state changes

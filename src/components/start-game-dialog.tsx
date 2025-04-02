@@ -16,9 +16,10 @@ import { DifficultyButton } from "./difficulty-button"
 interface StartGameDialogProps {
   onStart: () => void;
   changeDifficulty: () => void;
+  hardDifficulty: boolean
 }
 
-export function StartGameDialog({ onStart, changeDifficulty }: StartGameDialogProps) {
+export function StartGameDialog({ onStart, changeDifficulty, hardDifficulty }: StartGameDialogProps) {
   const [open, setOpen] = useState(true);
 
   const handleStart = () => {
@@ -34,7 +35,7 @@ export function StartGameDialog({ onStart, changeDifficulty }: StartGameDialogPr
           <DialogDescription>Use arrow keys to move and jump</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <DifficultyButton changeDifficulty={changeDifficulty}></DifficultyButton>
+          <DifficultyButton changeDifficulty={changeDifficulty} hardDifficulty={hardDifficulty}></DifficultyButton>
           <Button className="bg-blue-600 text-white" onClick={handleStart}>
             Start Game
           </Button>
