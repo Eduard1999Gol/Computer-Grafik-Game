@@ -60,7 +60,7 @@ export class Renderer {
   
   // Rendering configurations
   private readonly entityConfigs = {
-    player: { color: [0.2, 0.6, 1.0], geometry: 'sphere' },
+    player: { color: [1, 1, 1.0], geometry: 'sphere' },
     barrier: { color: [0.8, 0.2, 0.2] },
     obstacle: { color: [0.1, 0.1, 0.1] },
     ground: { color: [1, 1, 1] }
@@ -95,7 +95,7 @@ export class Renderer {
    */
   public async loadTextures(): Promise<void> {
     await this.textureManager.loadTextures([
-      { name: 'player', url: '/assets/textures/blau_plastic.png' },
+      { name: 'player', url: '/assets/textures/woodplank_ball.png' },
       { name: 'ground', url: '/assets/textures/brick_floor.jpg' }
     ]);
   }
