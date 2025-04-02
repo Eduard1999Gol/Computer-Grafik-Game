@@ -11,13 +11,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { DifficultyButton } from "./difficulty-button"
 
 interface RestartGameDialogProps {
-  onRestart: () => void
+  onRestart: () => void;
+  changeDifficulty: () => void;
 }
 
 
-export function RestartGameDialog({ onRestart }: RestartGameDialogProps) {
+export function RestartGameDialog({ onRestart, changeDifficulty }: RestartGameDialogProps) {
   const [open, setOpen] = useState(false);
 
   const handleRestart = () => {
@@ -33,6 +35,7 @@ export function RestartGameDialog({ onRestart }: RestartGameDialogProps) {
           <DialogDescription>Restart Game?</DialogDescription>
         </DialogHeader>
         <DialogFooter> {/* Restart confirmation dialog */}
+          <DifficultyButton changeDifficulty={changeDifficulty}></DifficultyButton>
           <Button variant="outline" className="bg-red-600 text-white" onClick={handleRestart}>Restart Game</Button>
         </DialogFooter>
       </DialogContent>

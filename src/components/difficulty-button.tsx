@@ -8,18 +8,18 @@ interface DifficultyButtonProps {
 
 export function DifficultyButton({ changeDifficulty }: DifficultyButtonProps) {
     const [isHard, setIsHard] = useState(false);
-    const [className, setClassName] = useState("text-white bg-green-600");
+    const [className, setClassName] = useState("text-white bg-green-600 w-20");
 
     const switchDifficulty = () => {
         setIsHard(!isHard);
-        const newClassName = (className == "text-white bg-green-600") ? "text-white bg-red-600" : "text-white bg-green-600";
+        const newClassName = (className == "text-white bg-green-600 w-20") ? "text-white bg-red-600 w-20" : "text-white bg-green-600 w-20";
         setClassName(newClassName)
         changeDifficulty();
     }
 
     return (
         <div className="flex items-center space-x-2">
-          <span className="text-white font-bold">Change Difficulty:</span> {
+          <span>Change Difficulty:</span> {
           <Button onClick={switchDifficulty} className={className}>
             {isHard ? "Hard" : "Normal"} 
           </Button>}

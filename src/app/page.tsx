@@ -73,6 +73,7 @@ export default () => {
 
   const changeDifficulty = () => {
     if (game.current) {
+      game.current.setHardDifficulty(!hardDifficulty);
       setHardDifficulty(!hardDifficulty);
     }
     else console.error("Failed loading game");
@@ -87,20 +88,17 @@ export default () => {
           <span className="text-white text-lg font-bold">Endless Runner Game</span>
   
           <div className="flex justify-between w-full max-w-md items-center mb-4">
-            {gameStarted && <DifficultyButton changeDifficulty={changeDifficulty}></DifficultyButton>}
             <div className="text-white">
               <span className="font-bold">Score:</span> {score}
             </div>
-            {highScore > 0 && (
-              <div className="text-white">
-                <span className="font-bold">High Score:</span> {highScore}
-              </div>
-            )}
+            <div className="text-white">
+              <span className="font-bold">High Score:</span> {highScore}
+            </div>
           </div>
 
-          {!gameStarted && (<StartGameDialog onStart={handleStartGame}/>)}
+          {!gameStarted && (<StartGameDialog onStart={handleStartGame} changeDifficulty={changeDifficulty}/>)}
           
-          {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame}/>)}
+          {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame} changeDifficulty={changeDifficulty}/>)}
   
           {gameStarted && !gameOver && (
             <div className="text-sm text-white/70 mt-2">

@@ -36,8 +36,8 @@ export class EndlessRunnerGame {
     
     // Initialize game components
     this.renderer = new Renderer(gl, this.shaderProgram);
-    this.player = new Player();
-    this.obstacleManager = new ObstacleManager();
+    this.player = new Player(this.hardDifficulty);
+    this.obstacleManager = new ObstacleManager(this.hardDifficulty);
     
     // Set up event listeners
     this.setupControls();
@@ -71,25 +71,6 @@ export class EndlessRunnerGame {
           break;
       }
     });
-    
-    // Add touch controls for mobile devices
-    this.canvas.addEventListener('touchstart', (event) => {
-      if (this.gameOver) return;
-      
-      const touch = event.touches[0];
-      const x = touch.clientX;
-      const width = this.canvas.clientWidth;
-      
-      if (x < width / 3) {
-        this.player.moveLeft();
-      } else if (x > (width * 2) / 3) {
-        this.player.moveRight();
-      } else {
-        this.player.jump();
-      }
-      
-      event.preventDefault();
-    });
   }
   
   // Add callbacks for game events
@@ -104,6 +85,14 @@ export class EndlessRunnerGame {
   public getScore(): number {
     return Math.floor(this.score);
   }
+
+  public getHardDifficulty(): boolean {
+    return this.hardDifficulty;
+  }
+
+  public setHardDifficulty(hard: boolean) {
+    this.hardDifficulty = hard;
+  }
   
   public isGameOver(): boolean {
     return this.gameOver;
@@ -116,8 +105,8 @@ export class EndlessRunnerGame {
     this.lastFrameTime = performance.now();
     
     // Reset game components
-    this.player = new Player();
-    this.obstacleManager = new ObstacleManager();
+    this.player = new Player(this.hardDifficulty);
+    this.obstacleManager = new ObstacleManager(this.hardDifficulty);
     
     // Start game loop
     requestAnimationFrame(this.gameLoop.bind(this));
@@ -154,7 +143,7 @@ export class EndlessRunnerGame {
     this.renderer.updateGroundPosition(deltaTime, this.gameSpeed);
     
     // Increase difficulty over time
-    this.gameSpeed += deltaTime * 0.05;
+    this.gameSpeed += deltaTime * (this.hardDifficulty ? 0.05 : 0.01);
     
     // Increment score
     this.score += deltaTime * 10 * this.gameSpeed;
