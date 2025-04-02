@@ -2,10 +2,12 @@ import { Player } from './player';
 import { Vector3 } from '@math.gl/core';
 import { normalMatrix } from '@/utility';
 import { cube_vertices, cube_indices, cube_normals, cube_texCoords } from "./cube_data"
+import { sphere_vertices, sphere_indices, sphere_normals, sphere_texCoords } from "./sphere_data"
 
 export interface Obstacle {
   position: Vector3;
   scale?: Vector3;
+  size?: Vector3;  // Added size property to match obstacle-manager.ts
   type: string;
 }
 
@@ -13,6 +15,7 @@ export interface Obstacle {
 interface RenderConfig {
   color: number[];
   scale?: Vector3;
+  geometry?: 'cube' | 'sphere';
 }
 
 // Buffer configuration object
@@ -35,10 +38,11 @@ export class Renderer {
   
   // Geometry buffers
   private cubeGeometry: GeometryBuffers;
+  private sphereGeometry: GeometryBuffers;
   
   // Rendering configurations
   private readonly entityConfigs = {
-    player: { color: [0.2, 0.6, 1.0] },
+    player: { color: [0.2, 0.6, 1.0], geometry: 'sphere' },
     barrier: { color: [0.8, 0.2, 0.2] },
     obstacle: { color: [0.1, 0.1, 0.1] },
     ground: { color: [0.3, 0.3, 0.3] }
@@ -58,6 +62,7 @@ export class Renderer {
     // Initialize rendering pipeline
     this.setupShaderLocations();
     this.cubeGeometry = this.createCubeGeometry();
+    this.sphereGeometry = this.createSphereGeometry();
     this.initializeRenderState();
     
     // Set initial projection matrix
@@ -110,6 +115,45 @@ export class Renderer {
     
     // Define indices for the cube
     const indices = cube_indices
+
+    // Create and bind vertex buffer
+    const vertexBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
+    
+    // Create and bind normal buffer
+    const normalBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, normals, this.gl.STATIC_DRAW);
+    
+    // Create and bind texture coordinate buffer
+    const texCoordBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoordBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, texCoords, this.gl.STATIC_DRAW);
+    
+    // Create and bind index buffer
+    const indexBuffer = this.gl.createBuffer();
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, indices, this.gl.STATIC_DRAW);
+    
+    return {
+      vertex: vertexBuffer,
+      normal: normalBuffer,
+      texCoord: texCoordBuffer,
+      index: indexBuffer,
+      indexCount: indices.length
+    };
+  }
+  
+  /**
+   * Create sphere geometry and return buffer objects
+   */
+  private createSphereGeometry(): GeometryBuffers {
+    // Use the sphere data
+    const vertices = sphere_vertices;
+    const normals = sphere_normals;
+    const texCoords = sphere_texCoords;
+    const indices = sphere_indices;
 
     // Create and bind vertex buffer
     const vertexBuffer = this.gl.createBuffer();
@@ -241,7 +285,7 @@ export class Renderer {
     const config = this.entityConfigs.player;
     const position = player.position || new Vector3(0, 0, 0);
     
-    // Render player cube at position
+    // Render player as a sphere at position
     this.renderEntity(position, config);
   }
   
@@ -257,7 +301,7 @@ export class Renderer {
       // Render obstacle with appropriate configuration
       this.renderEntity(obstacle.position, {
         ...config,
-        scale: obstacle.scale
+        scale: obstacle.size || obstacle.scale
       });
     }
   }
@@ -301,8 +345,12 @@ export class Renderer {
       nMatrix
     );
     
-    // Draw the entity
-    this.drawCube();
+    // Draw the entity with appropriate geometry
+    if (config.geometry === 'sphere') {
+      this.drawSphere();
+    } else {
+      this.drawCube();
+    }
   }
   
   /**
@@ -381,6 +429,62 @@ export class Renderer {
     this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, index);
     
     // Draw the cube
+    this.gl.drawElements(
+      this.gl.TRIANGLES,
+      indexCount,
+      this.gl.UNSIGNED_SHORT,
+      0
+    );
+  }
+  
+  /**
+   * Draw a sphere using the sphere buffers
+   */
+  private drawSphere(): void {
+    const { vertex, normal, texCoord, index, indexCount } = this.sphereGeometry;
+    
+    if (!vertex || !normal || !texCoord || !index) return;
+    
+    // Bind position buffer
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertex);
+    this.gl.vertexAttribPointer(
+      this.attribLocations.position,
+      3,              // 3 components per vertex
+      this.gl.FLOAT,  // type of data
+      false,          // don't normalize
+      0,              // stride (0 = auto)
+      0               // offset
+    );
+    this.gl.enableVertexAttribArray(this.attribLocations.position);
+    
+    // Bind normal buffer
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normal);
+    this.gl.vertexAttribPointer(
+      this.attribLocations.normal,
+      3,              // 3 components per normal
+      this.gl.FLOAT,  // type of data
+      false,          // don't normalize
+      0,              // stride (0 = auto)
+      0               // offset
+    );
+    this.gl.enableVertexAttribArray(this.attribLocations.normal);
+    
+    // Bind texture coordinate buffer
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, texCoord);
+    this.gl.vertexAttribPointer(
+      this.attribLocations.texCoord,
+      2,              // 2 components per texture coord
+      this.gl.FLOAT,  // type of data
+      false,          // don't normalize
+      0,              // stride (0 = auto)
+      0               // offset
+    );
+    this.gl.enableVertexAttribArray(this.attribLocations.texCoord);
+    
+    // Bind index buffer
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, index);
+    
+    // Draw the sphere
     this.gl.drawElements(
       this.gl.TRIANGLES,
       indexCount,

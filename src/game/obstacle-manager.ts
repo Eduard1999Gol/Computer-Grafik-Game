@@ -5,7 +5,7 @@ interface Obstacle {
   position: Vector3;
   size: Vector3;
   lane: number;
-  type: 'barrier' | 'hole';
+  type: 'small-barrier' | 'large-barrier' | 'floating-barrier' | 'hole';
 }
 
 export class ObstacleManager {
@@ -13,7 +13,8 @@ export class ObstacleManager {
   private spawnDistance: number = 50; // Distance ahead where obstacles spawn
   private spawnTimer: number = 0;
   private initialSpawnDelay: number = 2.0; // Give player time to get ready
-  
+  private xCollisionDistance: number = 0.7; // Default distances between player and obstacle that leads to collision
+  private zCollisionDistance: number = 1; 
   constructor() {
     // Initial delay before spawning first obstacle
     this.spawnTimer = this.initialSpawnDelay;
@@ -46,13 +47,45 @@ export class ObstacleManager {
     const xPos = (lane - 1) * 2; // Convert lane to x position (-2, 0, 2)
     
     // Create a new obstacle
-    const obstacleType = Math.random() > 0.3 ? 'barrier' : 'hole';
-    const obstacleSize = obstacleType === 'barrier' 
-      ? new Vector3([1.8, 1, 1])  // Barriers have height
-      : new Vector3([1.8, 0.1, 1]); // Holes are flat
+    let obstacleType: Obstacle['type'];
+
+    if (Math.random() > 0.3) {
+      const barrierType = Math.random();
+      if (barrierType <= 0.33) obstacleType = 'small-barrier';
+      else if (barrierType > 0.33 && barrierType <= 0.67) obstacleType = 'large-barrier';
+      else obstacleType = 'floating-barrier';
+    } else {
+      obstacleType = 'hole';
+    }
+
+    // original sizes:
+    // barrier: 1.8, 1, 1
+    // holes: 1.8, 0.1, 1
+    let obstacleSize = new Vector3();
+    switch (obstacleType) {
+      case 'hole':
+        obstacleSize = new Vector3([1, 0.1, 1]);
+        break;
+      case 'large-barrier':
+        obstacleSize = new Vector3([0.8, 2.5, 0.3]);
+        break;
+      case 'floating-barrier':
+        obstacleSize = new Vector3([0.8, 0.5, 0.5]);
+        break;
+      default:
+        obstacleSize = new Vector3([0.8, 0.8, 0.5]);
+    }
+
+    let yPos = -2.0;
+    if (obstacleType == 'small-barrier' || obstacleType == 'large-barrier') yPos = 0;
+    else if (obstacleType == 'floating-barrier') yPos = 2.5;
     
     this.obstacles.push({
-      position: new Vector3([xPos, obstacleType === 'barrier' ? 0.5 : 0, -this.spawnDistance]), // Far ahead
+      position: new Vector3([
+        xPos, 
+        yPos,
+        -this.spawnDistance
+      ]), // Far ahead
       size: obstacleSize,
       lane: lane,
       type: obstacleType
@@ -60,25 +93,53 @@ export class ObstacleManager {
   }
   
   checkCollision(player: Player): boolean {
-    // Simple collision detection with improved accuracy
-    const playerPos = player.position;
+    const xPosPlayer = player.position[0];
+    const yPosPlayer = player.position[1];
+    const zPosPlayer = player.position[2];
     const playerSize = player.size;
     
      for (const obstacle of this.obstacles) {
-       console.log(this.obstacles);
-      
        // Only check obstacles close to the player (z-axis)
-       if (Math.abs(obstacle.position[2]) < 2) {
-         // Check if player and obstacle are in the same lane (x-axis)
-         if (Math.abs(obstacle.position[0] - playerPos[0]) < 1.5) {
-           // Vertical collision depends on obstacle type (y-axis)
-           if (obstacle.type === 'barrier' && playerPos[1] < obstacle.position[1] + obstacle.size[1]) {
-             return true; // Collision with barrier
-           } else if (obstacle.type === 'hole' && playerPos[1] <= 0.1) {
-             return true; // Fell into a hole
-           }
-         }
-       }
+      const zPosObstacle = obstacle.position[2];
+      if (Math.abs(zPosObstacle) >= this.zCollisionDistance || zPosObstacle > 0.0) return false; 
+      const xPosObstacle = obstacle.position[0];
+      const yPosObstacle = obstacle.position[1]; 
+      const xDiff = Math.abs(xPosObstacle - xPosPlayer);
+      const yDiff = yPosPlayer - yPosObstacle;
+      
+      // check if player is in the same lane as the obstacle
+      if (xDiff >= this.xCollisionDistance) return false; 
+      switch (obstacle.type) {
+        case 'hole':
+          if (yPosPlayer <= 0) {
+            console.log("xPl: %f, xOb: %f", xPosPlayer, xPosObstacle);
+            console.log("yPl: %f, yOb: %f", yPosPlayer, yPosObstacle);
+            console.log("zPl: %f, zOb: %f", zPosPlayer, zPosObstacle);
+            return true;
+          }
+          break;
+        case 'floating-barrier':
+          if (yPosPlayer >= yPosObstacle) {
+            console.log("xPl: %f, xOb: %f", xPosPlayer, xPosObstacle);
+            console.log("yPl: %f, yOb: %f", yPosPlayer, yPosObstacle);
+            console.log("zPl: %f, zOb: %f", zPosPlayer, zPosObstacle);
+            return true;
+          };
+          break;
+        case 'small-barrier':
+          if (yPosPlayer <= yPosObstacle) {
+            console.log("xPl: %f, xOb: %f", xPosPlayer, xPosObstacle);
+            console.log("yPl: %f, yOb: %f", yPosPlayer, yPosObstacle);
+            console.log("zPl: %f, zOb: %f", zPosPlayer, zPosObstacle);
+            return true;
+          };
+          break;
+        default:
+          console.log("xPl: %f, xOb: %f", xPosPlayer, xPosObstacle);
+          console.log("yPl: %f, yOb: %f", yPosPlayer, yPosObstacle);
+          console.log("zPl: %f, zOb: %f", zPosPlayer, zPosObstacle);
+          return true;
+      } 
      }
     
     return false;
