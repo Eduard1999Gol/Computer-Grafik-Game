@@ -33,27 +33,7 @@ export function RestartGameDialog({ onRestart }: RestartGameDialogProps) {
           <DialogDescription>Restart Game?</DialogDescription>
         </DialogHeader>
         <DialogFooter> {/* Restart confirmation dialog */}
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="bg-red-600 text-white">Restart Game</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Restart Game</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to restart the game? All current progress will be lost.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-0">
-                <Button type="button" className="bg-blue-600 text-white" variant="secondary" onClick={() => setOpen(false)}>
-                  No, Continue Playing
-                </Button>
-                <Button type="button" className="bg-red-600 text-white" onClick={handleRestart}>
-                  Yes, Restart Game
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button variant="outline" className="bg-red-600 text-white" onClick={handleRestart}>Restart Game</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
