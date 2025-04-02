@@ -62,7 +62,7 @@ export class Renderer {
     player: { color: [0.2, 0.6, 1.0], geometry: 'sphere' },
     barrier: { color: [0.8, 0.2, 0.2] },
     obstacle: { color: [0.1, 0.1, 0.1] },
-    ground: { color: [0.3, 0.3, 0.3] }
+    ground: { color: [1, 1, 1] }
   };
   
   // Light configuration
