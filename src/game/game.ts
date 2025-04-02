@@ -4,7 +4,6 @@ import { ObstacleManager } from './obstacle-manager';
 import { Renderer } from './renderer';
 import { Player } from './player';
 import { compileShaderProgram } from '../lib/utils';
-import { loadTexture } from '../lib/utils';
 
 export class EndlessRunnerGame {
   private gl: WebGL2RenderingContext;
@@ -19,8 +18,6 @@ export class EndlessRunnerGame {
   private score: number = 0;
   private gameOver: boolean = false;
   private gameStarted: boolean = false;
-  private playerTexture: WebGLTexture | null = null;
-  private groundTexture: WebGLTexture | null = null;
   
   // Add callbacks for game state changes
   private onGameOverCallback?: (score: number) => void;
@@ -48,23 +45,10 @@ export class EndlessRunnerGame {
 
   private async loadAssets(): Promise<void> {
     try {
-      // Load player texture
-      this.playerTexture = await loadTexture(this.gl, '/assets/textures/blau_plastic.png');
-      
-      // Load ground texture
-      this.groundTexture = await loadTexture(this.gl, '/assets/textures/floor.jpg');
-      
-      // Set the texture on the player if it's already created
-      if (this.player && this.playerTexture) {
-        this.player.setTexture(this.playerTexture);
-      }
-      
-      // Set the ground texture in the renderer
-      if (this.renderer && this.groundTexture) {
-        this.renderer.setGroundTexture(this.groundTexture);
-      }
+      // Load all textures via the renderer
+      await this.renderer.loadTextures();
     } catch (error) {
-      console.error('Failed to load texture:', error);
+      console.error('Failed to load assets:', error);
     }
   }
   
@@ -133,16 +117,6 @@ export class EndlessRunnerGame {
     // Reset game components
     this.player = new Player();
     this.obstacleManager = new ObstacleManager();
-
-    // Apply texture to player if loaded
-    if (this.playerTexture) {
-      this.player.setTexture(this.playerTexture);
-    }
-    
-    // Apply texture to ground if loaded
-    if (this.groundTexture) {
-      this.renderer.setGroundTexture(this.groundTexture);
-    }
     
     // Start game loop
     requestAnimationFrame(this.gameLoop.bind(this));
@@ -169,11 +143,14 @@ export class EndlessRunnerGame {
   }
   
   private update(deltaTime: number): void {
-    // Update player
-    this.player.update(deltaTime);
+    // Update player with game speed
+    this.player.update(deltaTime, this.gameSpeed);
     
     // Update obstacles
     this.obstacleManager.update(deltaTime, this.gameSpeed);
+    
+    // Update ground position for scrolling effect
+    this.renderer.updateGroundPosition(deltaTime, this.gameSpeed);
     
     // Increase difficulty over time
     this.gameSpeed += deltaTime * 0.01;

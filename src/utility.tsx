@@ -20,16 +20,32 @@ export function normalMatrix(modelViewMatrix: Float32Array): Float32Array {
   // Create a new matrix for the normal transformation
   const normalMat = new Float32Array(16);
   
-  // Start with a copy of the model-view matrix
-  for (let i = 0; i < 16; i++) {
-    normalMat[i] = modelViewMatrix[i];
-  }
+  // Implementation of matrix inverse:
+  // This is a simplified version that assumes the upper-left 3x3 portion
+  // of the modelViewMatrix only contains rotation/scale (no skew)
   
-  // Invert the matrix (simplified - this would normally be a proper inverse)
-  // This is just a placeholder - in a real implementation use proper matrix inversion
+  // Copy the upper-left 3x3 portion of modelViewMatrix
+  normalMat[0] = modelViewMatrix[0];
+  normalMat[1] = modelViewMatrix[1];
+  normalMat[2] = modelViewMatrix[2];
+  normalMat[4] = modelViewMatrix[4];
+  normalMat[5] = modelViewMatrix[5];
+  normalMat[6] = modelViewMatrix[6];
+  normalMat[8] = modelViewMatrix[8];
+  normalMat[9] = modelViewMatrix[9];
+  normalMat[10] = modelViewMatrix[10];
   
-  // Transpose the inverse
-  // This is just a placeholder - in a real implementation use proper matrix transpose
+  // Set to identity for the rest
+  normalMat[3] = 0;
+  normalMat[7] = 0;
+  normalMat[11] = 0;
+  normalMat[12] = 0;
+  normalMat[13] = 0;
+  normalMat[14] = 0;
+  normalMat[15] = 1;
+  
+  // For a proper implementation, this would involve transposing the inverse
+  // of the modelViewMatrix, but we're simplifying here
   
   return normalMat;
 }

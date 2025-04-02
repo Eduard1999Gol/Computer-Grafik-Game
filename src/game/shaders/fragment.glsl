@@ -10,6 +10,7 @@ uniform vec3 lightPosition;
 uniform vec3 diffuseColor;
 uniform sampler2D uTexture;
 uniform int u_useTexture;
+uniform vec2 u_textureOffset;
 
 void main() {
     vec3 normal = normalize(vNormal);
@@ -21,7 +22,9 @@ void main() {
     vec3 diffuse = (ambient + diff) * diffuseColor;
     
     if (u_useTexture == 1) {
-        vec4 texColor = texture2D(uTexture, vTexCoord);
+        // Apply texture offset for scrolling effect
+        vec2 scrolledTexCoord = vTexCoord + u_textureOffset;
+        vec4 texColor = texture2D(uTexture, scrolledTexCoord);
         gl_FragColor = vec4(diffuse * texColor.rgb, texColor.a);
     } else {
         gl_FragColor = vec4(diffuse, 1.0);
