@@ -18,6 +18,7 @@ export class EndlessRunnerGame {
   private score: number = 0;
   private gameOver: boolean = false;
   private gameStarted: boolean = false;
+  private hardDifficulty: boolean = false;
   
   // Add callbacks for game state changes
   private onGameOverCallback?: (score: number) => void;
@@ -140,7 +141,7 @@ export class EndlessRunnerGame {
     this.obstacleManager.update(deltaTime, this.gameSpeed);
     
     // Increase difficulty over time
-    this.gameSpeed += deltaTime * 0.01;
+    this.gameSpeed += deltaTime * 0.05;
     
     // Increment score
     this.score += deltaTime * 10 * this.gameSpeed;
