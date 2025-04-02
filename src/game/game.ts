@@ -133,8 +133,8 @@ export class EndlessRunnerGame {
   }
   
   private update(deltaTime: number): void {
-    // Update player
-    this.player.update(deltaTime);
+    // Update player with game speed
+    this.player.update(deltaTime, this.gameSpeed);
     
     // Update obstacles
     this.obstacleManager.update(deltaTime, this.gameSpeed);

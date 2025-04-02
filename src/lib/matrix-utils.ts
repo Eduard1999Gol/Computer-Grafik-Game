@@ -1,3 +1,5 @@
+import { mat4 } from 'gl-matrix';
+
 /**
  * Matrix utility functions for 3D graphics
  */
@@ -80,39 +82,37 @@ export function createViewMatrix(
 }
 
 /**
- * Creates a model-view matrix for an entity
- * @param viewMatrix The camera's view matrix
- * @param position Entity position
- * @param scale Entity scale (optional)
- * @returns Model-view matrix as Float32Array
+ * Creates model-view matrix by translating, scaling and rotating
  */
 export function createModelViewMatrix(
-  viewMatrix: Float32Array,
-  position: { x: number; y: number; z: number },
-  scale?: { x: number; y: number; z: number }
+  viewMatrix: Float32Array, 
+  position: { x: number, y: number, z: number },
+  scale?: { x: number, y: number, z: number },
+  rotation?: number // Add rotation parameter
 ): Float32Array {
-  const modelViewMatrix = new Float32Array(16);
+  const modelViewMatrix = mat4.create();
   
   // Start with view matrix
-  for (let i = 0; i < 16; i++) {
-    modelViewMatrix[i] = viewMatrix[i];
+  mat4.copy(modelViewMatrix, viewMatrix);
+  
+  // Apply translation
+  mat4.translate(modelViewMatrix, modelViewMatrix, [position.x, position.y, position.z]);
+  
+  // Apply rotation if provided
+  if (rotation !== undefined) {
+    // Rotate around X axis
+    mat4.rotateX(modelViewMatrix, modelViewMatrix, rotation);
+    // You can add more rotation axes if needed
+    // mat4.rotateY(modelViewMatrix, modelViewMatrix, rotation);
+    // mat4.rotateZ(modelViewMatrix, modelViewMatrix, rotation);
   }
   
-  // Apply position transformation
-  modelViewMatrix[12] += position.x;
-  modelViewMatrix[13] += position.y;
-  modelViewMatrix[14] += position.z;
-  
-  // Apply scale if provided
+  // Apply scaling if provided
   if (scale) {
-    // Note: This is a simplified approach. A proper implementation would
-    // use full matrix multiplication for accurate scaling
-    modelViewMatrix[0] *= scale.x;
-    modelViewMatrix[5] *= scale.y;
-    modelViewMatrix[10] *= scale.z;
+    mat4.scale(modelViewMatrix, modelViewMatrix, [scale.x, scale.y, scale.z]);
   }
   
-  return modelViewMatrix;
+  return modelViewMatrix as Float32Array;
 }
 
 // Vector helper methods
