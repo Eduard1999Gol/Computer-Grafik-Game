@@ -46,7 +46,7 @@ export class ObstacleManager {
   private spawnObstacle(): void {
     // Choose a random lane
     const laneCount = this.hardDifficulty ? 5 : 3
-    const lane = Math.floor(Math.random() * laneCount); // 0, 1, or 2
+    const lane = Math.floor(Math.random() * laneCount); // random integer from 0 to laneCount - 1
     const xPos = (lane - Math.floor(laneCount / 2)) * 3; // Convert lane to x position, so that middle lane is x = 0 with distance 3 between lanes
     
     // Create a new obstacle
@@ -70,10 +70,10 @@ export class ObstacleManager {
         obstacleSize = new Vector3([0.8, 2.5, 0.8]);
         break;
       case 'floating-barrier':
-        obstacleSize = new Vector3([0.8, 0.5, 0.8]);
+        obstacleSize = new Vector3([0.8, 1, 0.8]);
         break;
       default:
-        obstacleSize = new Vector3([1, 1, 1]);//new Vector3([0.8, 0.8, 0.5]);
+        obstacleSize = new Vector3([0.8, 0.8, 0.8]);
     }
 
     let yPos = 0.0;
