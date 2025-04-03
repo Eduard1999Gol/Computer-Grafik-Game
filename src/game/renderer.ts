@@ -21,7 +21,7 @@ export interface Obstacle {
   position: Vector3;
   scale?: Vector3;
   size?: Vector3;
-  type: string;
+  type: 'small-barrier' | 'large-barrier' | 'floating-barrier' | 'hole';
 }
 
 // Uniform locations type
@@ -53,6 +53,7 @@ interface RenderOptions {
   textureName?: string;
   textureOffset?: number[];
   color?: number[]; // Override default color
+  geometry?: 'cube' | 'sphere';
 }
 
 export class Renderer {
@@ -91,10 +92,9 @@ export class Renderer {
   // Default entity configurations
   private readonly entityConfigs: Record<string, EntityConfig> = {
     player: { color: [1, 1, 1.0], geometry: 'sphere' },
-    barrier: { color: [0.8, 0.2, 0.2] },
-    obstacle: { color: [0.1, 0.1, 0.1] },
+    obstacle: { color: [0.7, 0.7, 0.7], geometry: 'cube'},
     ground: { color: [1, 1, 1] },
-    hole: { color: [0.05, 0.05, 0.05], geometry: 'sphere' }
+    hole: { color: [1, 1, 1], geometry: 'sphere' }
   };
   
   // Light configuration
@@ -126,9 +126,11 @@ export class Renderer {
     try {
       await this.textureManager.loadTextures([
         { name: 'player', url: '/assets/textures/woodplank_ball.png' },
-        { name: 'ground', url: '/assets/textures/brick_floor.jpg' }
+        { name: 'ground', url: '/assets/textures/ground2.jpg' },
+        { name: 'barrier', url: '/assets/textures/bark.jpg' },
+        { name: 'hole', url: '/assets/textures/hole2.jpg' }
       ]);
-    } catch (error) {
+          } catch (error) {
       console.error('Failed to load textures:', error);
     }
   }
@@ -254,13 +256,15 @@ export class Renderer {
    */
   private renderObstacles(obstacles: Obstacle[]): void {
     for (const obstacle of obstacles) {
-      const config = this.entityConfigs[obstacle.type] || this.entityConfigs.obstacle;
+      // Determine the config based on obstacle type
+      const obstacleType = obstacle.type === 'hole' ? 'hole' : 'obstacle';
+      const config = this.entityConfigs[obstacleType];
       
       if (obstacle.type === 'hole') {
         // Create a flattened sphere for the hole
         const holePosition = new Vector3([
           obstacle.position[0],
-          obstacle.position[1] + 0.05, // Raise slightly to be visible
+          obstacle.position[1], 
           obstacle.position[2]
         ]);
         
@@ -274,13 +278,20 @@ export class Renderer {
         this.renderEntity({
           position: holePosition,
           scale: holeScale,
+          useTexture: true,
+          textureName: 'hole',
+          geometry: 'sphere',
           ...config
         });
       } else {
+        // For barrier obstacles, explicitly set the texture properties
         this.renderEntity({
           position: obstacle.position,
           scale: obstacle.size || obstacle.scale,
-          ...config
+          useTexture: true,
+          textureName: 'barrier',
+          geometry: 'cube',
+          ...config, 
         });
       }
     }
@@ -317,6 +328,7 @@ export class Renderer {
     // Get texture from manager
     const texture = this.textureManager.getTexture(textureName);
     if (!texture) {
+      console.warn(`Texture "${textureName}" not found!`);
       this.gl.uniform1i(this.uniformLocations.u_useTexture, 0);
       return false;
     }
@@ -379,23 +391,9 @@ export class Renderer {
     // Draw with appropriate geometry
     const geometry = options.geometry || 'cube';
     if (geometry === 'sphere') {
-      this.drawSphere();
+      drawSphere(this.gl, this.sphereGeometry, this.attribLocations);
     } else {
-      this.drawCube();
+      drawCube(this.gl, this.cubeGeometry, this.attribLocations);
     }
-  }
-  
-  /**
-   * Draw a cube using the cube geometry buffers
-   */
-  private drawCube(): void {
-    drawCube(this.gl, this.cubeGeometry, this.attribLocations);
-  }
-  
-  /**
-   * Draw a sphere using the sphere geometry buffers
-   */
-  private drawSphere(): void {
-    drawSphere(this.gl, this.sphereGeometry, this.attribLocations);
   }
 }
