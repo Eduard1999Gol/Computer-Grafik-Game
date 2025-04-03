@@ -26,7 +26,6 @@ export function RestartGameDialog({ onRestart, changeDifficulty, hardDifficulty 
   const [hardMode, setHardMode] = useState(hardDifficulty);
 
   const handleRestart = () => {
-    // If the difficulty mode changed, toggle it
     if (hardMode !== hardDifficulty) {
       changeDifficulty();
     }
@@ -37,9 +36,17 @@ export function RestartGameDialog({ onRestart, changeDifficulty, hardDifficulty 
   const handleDifficultyChange = (checked: boolean) => {
     setHardMode(checked);
   }
+  
+  // Custom handler to prevent closing when clicking outside
+  const handleOpenChange = (newOpenState: boolean) => {
+    if (newOpenState === false) {
+      return;
+    }
+    setOpen(newOpenState);
+  }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="bg-gray-700/90 border-2 border-gray-400 rounded-xl shadow-lg max-w-md w-full">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-200 tracking-wider mb-1 text-center">Game Over</DialogTitle>
