@@ -301,7 +301,7 @@ export class Renderer {
    * Render the ground
    */
   private renderGround(): void {
-    const groundPosition = new Vector3(0, -3, 0);
+    const groundPosition = new Vector3(0, -1.4, 0);
     const groundScale = new Vector3(50, 0.4, 100);
     const textureOffset = [0, this.groundTextureOffset];
     
