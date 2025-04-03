@@ -14,9 +14,9 @@ import {
 import { DifficultyButton } from "./difficulty-button"
 
 interface StartGameDialogProps {
-  onStart: () => void;
-  changeDifficulty: () => void;
-  hardDifficulty: boolean
+  onStart: () => void,
+  changeDifficulty: () => void,
+  hardDifficulty: () => boolean
 }
 
 export function StartGameDialog({ onStart, changeDifficulty, hardDifficulty }: StartGameDialogProps) {

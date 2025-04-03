@@ -14,9 +14,9 @@ import {
 import { DifficultyButton } from "./difficulty-button"
 
 interface RestartGameDialogProps {
-  onRestart: () => void;
-  changeDifficulty: () => void;
-  hardDifficulty: boolean
+  onRestart: () => void,
+  changeDifficulty: () => void,
+  hardDifficulty: () => boolean
 }
 
 

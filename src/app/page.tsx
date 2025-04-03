@@ -79,6 +79,16 @@ export default () => {
     else console.error("Failed loading game");
   }
 
+  const getCurrentDifficulty = () => {
+    if (game.current) {
+      return game.current.getHardDifficulty();
+    }
+    else {
+      console.error("Failed loading game");
+      return false;
+    }
+  }
+
   return (
     <div className="relative h-screen w-screen">
       <canvas className="absolute inset-0 h-full w-full" ref={canvas} />
@@ -96,9 +106,9 @@ export default () => {
             </div>
           </div>
 
-          {!gameStarted && (<StartGameDialog onStart={handleStartGame} changeDifficulty={changeDifficulty} hardDifficulty={hardDifficulty}/>)}
+          {!gameStarted && (<StartGameDialog onStart={handleStartGame} changeDifficulty={changeDifficulty} hardDifficulty={getCurrentDifficulty}/>)}
           
-          {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame} changeDifficulty={changeDifficulty} hardDifficulty={hardDifficulty}/>)}
+          {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame} changeDifficulty={changeDifficulty} hardDifficulty={getCurrentDifficulty}/>)}
   
           {gameStarted && !gameOver && (
             <div className="text-sm text-white/70 mt-2">
