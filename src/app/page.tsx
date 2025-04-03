@@ -4,6 +4,7 @@ import { EndlessRunnerGame } from '@/game/game';
 import React from "react";
 import { RestartGameDialog } from '@/components/restart-game-dialog';
 import { StartGameDialog } from '@/components/start-game-dialog';
+import { DifficultyButton } from '@/components/difficulty-button';
 
 export default () => {
   const game = React.useRef<EndlessRunnerGame | null>(null);
@@ -12,6 +13,7 @@ export default () => {
   const [gameOver, setGameOver] = React.useState(false);
   const [gameStarted, setGameStarted] = React.useState(false);
   const [highScore, setHighScore] = React.useState(0);
+  const [hardDifficulty, setHardDifficulty] = React.useState(false);
 
   React.useEffect(() => {
     (async () => {
@@ -69,6 +71,14 @@ export default () => {
     else console.error("Failed loading game");
   };
 
+  const changeDifficulty = () => {
+    if (game.current) {
+      game.current.setHardDifficulty(!hardDifficulty);
+      setHardDifficulty(!hardDifficulty);
+    }
+    else console.error("Failed loading game");
+  }
+
   return (
     <div className="relative h-screen w-screen">
       <canvas className="absolute inset-0 h-full w-full" ref={canvas} />
@@ -81,16 +91,14 @@ export default () => {
             <div className="text-white">
               <span className="font-bold">Score:</span> {score}
             </div>
-            {highScore > 0 && (
-              <div className="text-white">
-                <span className="font-bold">High Score:</span> {highScore}
-              </div>
-            )}
+            <div className="text-white">
+              <span className="font-bold">High Score:</span> {highScore}
+            </div>
           </div>
 
-          {!gameStarted && (<StartGameDialog onStart={handleStartGame}/>)}
+          {!gameStarted && (<StartGameDialog onStart={handleStartGame} changeDifficulty={changeDifficulty} hardDifficulty={hardDifficulty}/>)}
           
-          {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame}/>)}
+          {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame} changeDifficulty={changeDifficulty} hardDifficulty={hardDifficulty}/>)}
   
           {gameStarted && !gameOver && (
             <div className="text-sm text-white/70 mt-2">
