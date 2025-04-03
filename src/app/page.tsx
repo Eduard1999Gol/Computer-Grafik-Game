@@ -3,12 +3,13 @@
 import { EndlessRunnerGame } from '@/game/game';
 import React from "react";
 import { RestartGameDialog } from '@/components/restart-game-dialog';
-import { StartGameDialog } from '@/components/start-game-dialog';
-import { DifficultyButton } from '@/components/difficulty-button';
+import GamePanel from '@/components/game-panel';
+import { WelcomeDialog } from '@/components/welcome-dialog';
 
-export default () => {
+// Custom hook to handle game logic
+const useEndlessRunnerGame = () => {
   const game = React.useRef<EndlessRunnerGame | null>(null);
-  const canvas = React.useRef<HTMLCanvasElement>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const [score, setScore] = React.useState(0);
   const [gameOver, setGameOver] = React.useState(false);
   const [gameStarted, setGameStarted] = React.useState(false);
@@ -16,109 +17,129 @@ export default () => {
   const [hardDifficulty, setHardDifficulty] = React.useState(false);
 
   React.useEffect(() => {
-    (async () => {
-      if (!canvas.current) return;
+    const initializeGame = async () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
       
       // Initialize game
-      canvas.current.width = canvas.current.clientWidth;
-      canvas.current.height = canvas.current.clientHeight;
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
       
       try {
-        game.current = new EndlessRunnerGame(canvas.current);
+        game.current = new EndlessRunnerGame(canvas);
         
         // Set up game callbacks
-        game.current.onScoreUpdate((newScore) => {
-          setScore(newScore);
-        });
+        game.current.onScoreUpdate(setScore);
         
         game.current.onGameOver((finalScore) => {
           setGameOver(true);
-          if (finalScore > highScore) {
-            setHighScore(finalScore);
-          }
+          setHighScore(prev => Math.max(prev, finalScore));
         });
-        
-        // Handle resize
-        const handleResize = () => {
-          if (canvas.current && game.current) {
-            canvas.current.width = canvas.current.clientWidth;
-            canvas.current.height = canvas.current.clientHeight;
-            game.current.resize();
-          }
-        };
-        
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
       } catch (error) {
         console.error("Failed to initialize game:", error);
       }
-    })();
+    };
+
+    initializeGame();
+
+    // Handle resize
+    const handleResize = () => {
+      const canvas = canvasRef.current;
+      if (canvas && game.current) {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        game.current.resize();
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleStartGame = () => {
-    if (game.current) {
-      setGameStarted(true);
-      game.current.start();
+  const startGame = (hardMode: boolean = false) => {
+    if (!game.current) {
+      console.error("Failed loading game");
+      return;
     }
-    else console.error("Failed loading game");
-  }
-
-  const handleRestartGame = () => {
-    if (game.current) {
-      setGameOver(false);
-      game.current.start();
-    }
-    else console.error("Failed loading game");
+    
+    setGameStarted(true);
+    setHardDifficulty(hardMode);
+    game.current.setHardDifficulty(hardMode);
+    game.current.start();
   };
 
-  const changeDifficulty = () => {
-    if (game.current) {
-      game.current.setHardDifficulty(!hardDifficulty);
-      setHardDifficulty(!hardDifficulty);
-    }
-    else console.error("Failed loading game");
-  }
-
-  const getCurrentDifficulty = () => {
-    if (game.current) {
-      return game.current.getHardDifficulty();
-    }
-    else {
+  const restartGame = () => {
+    if (!game.current) {
       console.error("Failed loading game");
-      return false;
+      return;
     }
-  }
+    
+    setGameOver(false);
+    game.current.start();
+  };
+
+  const toggleDifficulty = () => {
+    if (!game.current) {
+      console.error("Failed loading game");
+      return;
+    }
+    
+    const newDifficulty = !hardDifficulty;
+    setHardDifficulty(newDifficulty);
+    game.current.setHardDifficulty(newDifficulty);
+  };
+
+  return {
+    canvasRef,
+    score,
+    gameOver,
+    gameStarted,
+    highScore,
+    hardDifficulty,
+    startGame,
+    restartGame,
+    toggleDifficulty
+  };
+};
+
+export default function EndlessRunnerPage() {
+  const {
+    canvasRef,
+    score,
+    gameOver,
+    gameStarted,
+    highScore,
+    hardDifficulty,
+    startGame,
+    restartGame,
+    toggleDifficulty
+  } = useEndlessRunnerGame();
 
   return (
     <div className="relative h-screen w-screen">
-      <canvas className="absolute inset-0 h-full w-full" ref={canvas} />
+      <canvas className="absolute inset-0 h-full w-full" ref={canvasRef} />
   
-      <div className="absolute top-0 left-0 w-full p-4">
-        <div className="flex w-full flex-col items-center">
-          <span className="text-white text-lg font-bold">Endless Runner Game</span>
-  
-          <div className="flex justify-between w-full max-w-md items-center mb-4">
-            <div className="text-white">
-              <span className="font-bold">Score:</span> {score}
-            </div>
-            <div className="text-white">
-              <span className="font-bold">High Score:</span> {highScore}
-            </div>
-          </div>
-
-          {!gameStarted && (<StartGameDialog onStart={handleStartGame} changeDifficulty={changeDifficulty} hardDifficulty={getCurrentDifficulty}/>)}
+      <div className="absolute top-0 w-full">
+        {gameStarted && <GamePanel score={score} highScore={highScore}/>}
+        
+        <div className="flex w-full flex-col items-center mt-4">
+          {!gameStarted && (
+            <WelcomeDialog 
+              onStart={startGame} 
+              changeDifficulty={toggleDifficulty} 
+              hardDifficulty={hardDifficulty} 
+            />
+          )}
           
-          {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame} changeDifficulty={changeDifficulty} hardDifficulty={getCurrentDifficulty}/>)}
-  
-          {gameStarted && !gameOver && (
-            <div className="text-sm text-white/70 mt-2">
-              <p>⬅️ ➡️ Arrow keys to move side to side</p>
-              <p>⬆️ or Space to jump</p>
-            </div>
+          {gameStarted && gameOver && (
+            <RestartGameDialog 
+              onRestart={restartGame} 
+              changeDifficulty={toggleDifficulty} 
+              hardDifficulty={hardDifficulty}
+            />
           )}
         </div>
       </div>
     </div>
   );
-  
-};
+}
