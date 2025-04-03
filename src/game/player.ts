@@ -10,6 +10,7 @@ export class Player {
   jumpCooldown: number = 0;
   rotation: number = 0; // Current rotation angle in radians
   hardDifficulty: boolean;
+  jumpSound: HTMLAudioElement;
   
   constructor(hardDifficulty: boolean) {
     this.position = new Vector3([0, 0, 0]);
@@ -19,6 +20,10 @@ export class Player {
     this.isJumping = false;
     this.hardDifficulty = hardDifficulty;
     this.laneCount = hardDifficulty ? 5 : 3;
+    
+    // Jump sound
+    this.jumpSound = new Audio('/assets/sounds/jump.mp3'); // Adjust path as needed
+    this.jumpSound.volume = 0.5; // Adjust volume as needed
   }
   
   moveLeft(): void {
@@ -39,6 +44,10 @@ export class Player {
       this.velocity[1] = 15.0; // Jump velocity - increased for better feel
       this.isJumping = true;
       this.jumpCooldown = 0.1; // Small cooldown to prevent double jumps
+      
+      // Play jump sound
+      this.jumpSound.currentTime = 0; // Reset sound to beginning
+      this.jumpSound.play().catch(e => console.error('Error playing jump sound:', e));
     }
   }
   

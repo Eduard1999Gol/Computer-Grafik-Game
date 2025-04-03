@@ -18,6 +18,7 @@ export class EndlessRunnerGame {
   private score: number = 0;
   private gameOver: boolean = false;
   private hardDifficulty: boolean = false;
+  private soundGameOver: HTMLAudioElement = new Audio('/assets/sounds/fail.mp3');
   
   // Add callbacks for game state changes
   private onGameOverCallback?: (score: number) => void;
@@ -157,6 +158,8 @@ export class EndlessRunnerGame {
       console.log('Collision detected!');
       
       this.gameOver = true;
+      this.soundGameOver.currentTime = 0; // Reset sound to beginning
+      this.soundGameOver.play().catch(e => console.error('Error playing game over sound:', e));
       console.log('Game Over! Final Score:', Math.floor(this.score));
       
       // Notify game over
