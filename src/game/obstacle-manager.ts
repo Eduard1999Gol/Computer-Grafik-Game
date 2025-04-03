@@ -77,7 +77,7 @@ export class ObstacleManager {
     }
 
     let yPos = -2.0;
-    if (obstacleType == 'small-barrier' || obstacleType == 'large-barrier') yPos = 0;
+    if (obstacleType == 'small-barrier' || obstacleType == 'large-barrier') yPos = -0.5;
     else if (obstacleType == 'floating-barrier') yPos = 2.5;
     else if (obstacleType == 'hole') yPos = -2.4; // Position holes slightly above the ground (ground is at -3)
     

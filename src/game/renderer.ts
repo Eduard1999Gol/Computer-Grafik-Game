@@ -53,6 +53,7 @@ interface RenderOptions {
   textureName?: string;
   textureOffset?: number[];
   color?: number[]; // Override default color
+  geometry?: 'cube' | 'sphere';
 }
 
 export class Renderer {
@@ -126,7 +127,8 @@ export class Renderer {
     try {
       await this.textureManager.loadTextures([
         { name: 'player', url: '/assets/textures/woodplank_ball.png' },
-        { name: 'ground', url: '/assets/textures/brick_floor.jpg' }
+        { name: 'ground', url: '/assets/textures/brick_floor.jpg' },
+        { name: 'barrier', url: '/assets/textures/barrier.jpg' } 
       ]);
     } catch (error) {
       console.error('Failed to load textures:', error);
@@ -260,7 +262,7 @@ export class Renderer {
         // Create a flattened sphere for the hole
         const holePosition = new Vector3([
           obstacle.position[0],
-          obstacle.position[1] + 0.05, // Raise slightly to be visible
+          obstacle.position[1], // Raise slightly to be visible
           obstacle.position[2]
         ]);
         
@@ -277,7 +279,10 @@ export class Renderer {
           ...config
         });
       } else {
+        // For all non-hole obstacles, use a single "barrier" texture
         this.renderEntity({
+          useTexture: true,
+          textureName: 'barrier', // Use the same texture for all barriers
           position: obstacle.position,
           scale: obstacle.size || obstacle.scale,
           ...config
@@ -308,6 +313,8 @@ export class Renderer {
    * Set texture for rendering
    */
   private setTexture(textureName: string | undefined, useTexture: boolean): boolean {
+    console.log(`Setting texture: ${textureName}, useTexture: ${useTexture}`);
+    
     // Skip if texture not requested
     if (!useTexture || !textureName) {
       this.gl.uniform1i(this.uniformLocations.u_useTexture, 0);
@@ -379,23 +386,9 @@ export class Renderer {
     // Draw with appropriate geometry
     const geometry = options.geometry || 'cube';
     if (geometry === 'sphere') {
-      this.drawSphere();
+      drawSphere(this.gl, this.sphereGeometry, this.attribLocations);
     } else {
-      this.drawCube();
+      drawCube(this.gl, this.cubeGeometry, this.attribLocations);
     }
-  }
-  
-  /**
-   * Draw a cube using the cube geometry buffers
-   */
-  private drawCube(): void {
-    drawCube(this.gl, this.cubeGeometry, this.attribLocations);
-  }
-  
-  /**
-   * Draw a sphere using the sphere geometry buffers
-   */
-  private drawSphere(): void {
-    drawSphere(this.gl, this.sphereGeometry, this.attribLocations);
   }
 }
