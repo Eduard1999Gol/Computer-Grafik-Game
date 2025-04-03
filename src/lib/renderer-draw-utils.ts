@@ -1,5 +1,5 @@
-import { cube_vertices, cube_indices, cube_normals, cube_texCoords } from "./cube_data";
-import { sphere_vertices, sphere_indices, sphere_normals, sphere_texCoords } from "./sphere_data";
+import { cube_vertices, cube_indices, cube_normals, cube_texCoords } from "./geometry_data/cube_data";
+import { sphere_vertices, sphere_indices, sphere_normals, sphere_texCoords } from "./geometry_data/sphere_data";
 
 // Buffer configuration object
 export interface GeometryBuffers {
