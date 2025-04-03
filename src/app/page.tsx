@@ -6,9 +6,10 @@ import { RestartGameDialog } from '@/components/restart-game-dialog';
 import GamePanel from '@/components/game-panel';
 import { WelcomeDialog } from '@/components/welcome-dialog';
 
-export default () => {
+// Custom hook to handle game logic
+const useEndlessRunnerGame = () => {
   const game = React.useRef<EndlessRunnerGame | null>(null);
-  const canvas = React.useRef<HTMLCanvasElement>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const [score, setScore] = React.useState(0);
   const [gameOver, setGameOver] = React.useState(false);
   const [gameStarted, setGameStarted] = React.useState(false);
@@ -16,91 +17,129 @@ export default () => {
   const [hardDifficulty, setHardDifficulty] = React.useState(false);
 
   React.useEffect(() => {
-    (async () => {
-      if (!canvas.current) return;
+    const initializeGame = async () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
       
       // Initialize game
-      canvas.current.width = canvas.current.clientWidth;
-      canvas.current.height = canvas.current.clientHeight;
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
       
       try {
-        game.current = new EndlessRunnerGame(canvas.current);
+        game.current = new EndlessRunnerGame(canvas);
         
         // Set up game callbacks
-        game.current.onScoreUpdate((newScore) => {
-          setScore(newScore);
-        });
+        game.current.onScoreUpdate(setScore);
         
         game.current.onGameOver((finalScore) => {
           setGameOver(true);
-          if (finalScore > highScore) {
-            setHighScore(finalScore);
-          }
+          setHighScore(prev => Math.max(prev, finalScore));
         });
-        
-        // Handle resize
-        const handleResize = () => {
-          if (canvas.current && game.current) {
-            canvas.current.width = canvas.current.clientWidth;
-            canvas.current.height = canvas.current.clientHeight;
-            game.current.resize();
-          }
-        };
-        
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
       } catch (error) {
         console.error("Failed to initialize game:", error);
       }
-    })();
+    };
+
+    initializeGame();
+
+    // Handle resize
+    const handleResize = () => {
+      const canvas = canvasRef.current;
+      if (canvas && game.current) {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        game.current.resize();
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleStartGame = (hardMode: boolean = false) => {
-    if (game.current) {
-      setGameStarted(true);
-      setHardDifficulty(hardMode);
-      game.current.setHardDifficulty(hardMode);
-      game.current.start();
+  const startGame = (hardMode: boolean = false) => {
+    if (!game.current) {
+      console.error("Failed loading game");
+      return;
     }
-    else console.error("Failed loading game");
+    
+    setGameStarted(true);
+    setHardDifficulty(hardMode);
+    game.current.setHardDifficulty(hardMode);
+    game.current.start();
   };
 
-  const handleRestartGame = () => {
-    if (game.current) {
-      setGameOver(false);
-      game.current.start();
+  const restartGame = () => {
+    if (!game.current) {
+      console.error("Failed loading game");
+      return;
     }
-    else console.error("Failed loading game");
+    
+    setGameOver(false);
+    game.current.start();
   };
 
-  const changeDifficulty = () => {
-    if (game.current) {
-      game.current.setHardDifficulty(!hardDifficulty);
-      setHardDifficulty(!hardDifficulty);
+  const toggleDifficulty = () => {
+    if (!game.current) {
+      console.error("Failed loading game");
+      return;
     }
-    else console.error("Failed loading game");
+    
+    const newDifficulty = !hardDifficulty;
+    setHardDifficulty(newDifficulty);
+    game.current.setHardDifficulty(newDifficulty);
   };
 
-  const getCurrentDifficulty = () => {
-    // Return the React state value instead of accessing the game object
-    // This ensures we always have a valid boolean even if the game isn't loaded
-    return hardDifficulty;
+  return {
+    canvasRef,
+    score,
+    gameOver,
+    gameStarted,
+    highScore,
+    hardDifficulty,
+    startGame,
+    restartGame,
+    toggleDifficulty
   };
+};
+
+export default function EndlessRunnerPage() {
+  const {
+    canvasRef,
+    score,
+    gameOver,
+    gameStarted,
+    highScore,
+    hardDifficulty,
+    startGame,
+    restartGame,
+    toggleDifficulty
+  } = useEndlessRunnerGame();
 
   return (
     <div className="relative h-screen w-screen">
-      <canvas className="absolute inset-0 h-full w-full" ref={canvas} />
+      <canvas className="absolute inset-0 h-full w-full" ref={canvasRef} />
   
       <div className="absolute top-0 w-full">
         {gameStarted && <GamePanel score={score} highScore={highScore}/>}
         
         <div className="flex w-full flex-col items-center mt-4">
-          {!gameStarted && (<WelcomeDialog onStart={handleStartGame} changeDifficulty={changeDifficulty} hardDifficulty={getCurrentDifficulty} />)}
+          {!gameStarted && (
+            <WelcomeDialog 
+              onStart={startGame} 
+              changeDifficulty={toggleDifficulty} 
+              hardDifficulty={hardDifficulty} 
+            />
+          )}
           
-          {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame} changeDifficulty={changeDifficulty} hardDifficulty={getCurrentDifficulty}/>)}
+          {gameStarted && gameOver && (
+            <RestartGameDialog 
+              onRestart={restartGame} 
+              changeDifficulty={toggleDifficulty} 
+              hardDifficulty={hardDifficulty}
+            />
+          )}
         </div>
       </div>
     </div>
   );
-  
-};
+}

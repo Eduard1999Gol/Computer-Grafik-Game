@@ -17,22 +17,17 @@ import { Switch } from "@/components/ui/switch"
 interface RestartGameDialogProps {
   onRestart: () => void,
   changeDifficulty: () => void,
-  hardDifficulty: () => boolean
+  hardDifficulty: boolean
 }
 
 
 export function RestartGameDialog({ onRestart, changeDifficulty, hardDifficulty }: RestartGameDialogProps) {
-  const [open, setOpen] = useState(false);
-  const [hardMode, setHardMode] = useState(hardDifficulty());
-
-  useEffect(() => {
-    // Update hardMode state when external hardDifficulty changes
-    setHardMode(hardDifficulty());
-  }, [hardDifficulty]);
+  const [open, setOpen] = useState(true);
+  const [hardMode, setHardMode] = useState(hardDifficulty);
 
   const handleRestart = () => {
     // If the difficulty mode changed, toggle it
-    if (hardMode !== hardDifficulty()) {
+    if (hardMode !== hardDifficulty) {
       changeDifficulty();
     }
     onRestart();
@@ -44,7 +39,7 @@ export function RestartGameDialog({ onRestart, changeDifficulty, hardDifficulty 
   }
 
   return (
-    <Dialog open={true}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="bg-gray-700/90 border-2 border-gray-400 rounded-xl shadow-lg max-w-md w-full">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-200 tracking-wider mb-1 text-center">Game Over</DialogTitle>

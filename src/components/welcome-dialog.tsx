@@ -17,19 +17,14 @@ import { ArrowUp, ArrowLeft, ArrowRight } from "lucide-react"
 interface WelcomeDialogProps {
   onStart: (hardMode: boolean) => void, // Update the type to accept hardMode parameter
   changeDifficulty: () => void,
-  hardDifficulty: () => boolean
+  hardDifficulty: boolean
 }
 
 export function WelcomeDialog({ onStart, changeDifficulty, hardDifficulty }: WelcomeDialogProps) {
-  const [hardMode, setHardMode] = useState(hardDifficulty());
 
   const handleStart = () => {
-    // Pass the current hardMode value to onStart instead of toggling difficulty
-    onStart(hardMode);
-  }
-
-  const handleDifficultyChange = (checked: boolean) => {
-    setHardMode(checked);
+    // Pass the current hardDifficulty value to onStart
+    onStart(hardDifficulty);
   }
 
   return (
@@ -72,12 +67,12 @@ export function WelcomeDialog({ onStart, changeDifficulty, hardDifficulty }: Wel
             </Label>
             <Switch 
               id="difficulty-mode-welcome" 
-              checked={hardMode} 
-              onCheckedChange={handleDifficultyChange} 
+              checked={hardDifficulty} 
+              onCheckedChange={changeDifficulty} 
             />
           </div>
           <div className="text-sm text-gray-300">
-            {hardMode
+            {hardDifficulty
               ? "Hard mode enabled: Prepare for a challenging experience!"
               : "Normal mode: Enjoy a balanced experience."}
           </div>
