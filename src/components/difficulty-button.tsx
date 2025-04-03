@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 
 interface DifficultyButtonProps {
     changeDifficulty: () => void
+    hardDifficulty: boolean
 }
 
-export function DifficultyButton({ changeDifficulty }: DifficultyButtonProps) {
-    const [isHard, setIsHard] = useState(false);
+export function DifficultyButton({ changeDifficulty, hardDifficulty }: DifficultyButtonProps) {
+    const [isHard, setIsHard] = useState(hardDifficulty);
     const [className, setClassName] = useState("text-white bg-green-600 w-20");
 
     const switchDifficulty = () => {

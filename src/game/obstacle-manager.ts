@@ -64,7 +64,7 @@ export class ObstacleManager {
     let obstacleSize = new Vector3();
     switch (obstacleType) {
       case 'hole':
-        obstacleSize = new Vector3([1, 0.1, 1]);
+        obstacleSize = new Vector3([1.5, 0.05, 1.5]); // Wider and flatter to look like a circle
         break;
       case 'large-barrier':
         obstacleSize = new Vector3([0.8, 2.5, 0.3]);
@@ -79,6 +79,7 @@ export class ObstacleManager {
     let yPos = -2.0;
     if (obstacleType == 'small-barrier' || obstacleType == 'large-barrier') yPos = 0;
     else if (obstacleType == 'floating-barrier') yPos = 2.5;
+    else if (obstacleType == 'hole') yPos = -2.4; // Position holes slightly above the ground (ground is at -3)
     
     this.obstacles.push({
       position: new Vector3([

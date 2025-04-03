@@ -16,6 +16,7 @@ import {
   AttributeLocations 
 } from '../lib/renderer-draw-utils';
 
+// Types
 export interface Obstacle {
   position: Vector3;
   scale?: Vector3;
@@ -23,25 +24,55 @@ export interface Obstacle {
   type: string;
 }
 
-// Entity rendering configuration
-interface RenderConfig {
+// Uniform locations type
+interface UniformLocations {
+  modelViewMatrix: WebGLUniformLocation | null;
+  projectionMatrix: WebGLUniformLocation | null;
+  normalMatrix: WebGLUniformLocation | null;
+  diffuseColor: WebGLUniformLocation | null;
+  lightPosition: WebGLUniformLocation | null;
+  uTexture: WebGLUniformLocation | null;
+  u_useTexture: WebGLUniformLocation | null;
+  u_textureOffset: WebGLUniformLocation | null;
+}
+
+// Entity configuration type with better typing
+interface EntityConfig {
   color: number[];
-  scale?: Vector3;
   geometry?: 'cube' | 'sphere';
   useTexture?: boolean;
   textureName?: string;
-  textureOffset?: number[]; // Add texture offset for scrolling ground
-  rotation?: number; // Add rotation parameter
+}
+
+// Render options for an entity instance
+interface RenderOptions {
+  position: Vector3;
+  scale?: Vector3;
+  rotation?: number;
+  useTexture?: boolean;
+  textureName?: string;
+  textureOffset?: number[];
+  color?: number[]; // Override default color
 }
 
 export class Renderer {
   // Shader locations
-  private attribLocations: AttributeLocations & { [key: string]: number } = {
+  private attribLocations: AttributeLocations = {
     position: 0,
     normal: 0,
     texCoord: 0
   };
-  private uniformLocations: { [key: string]: WebGLUniformLocation | null } = {};
+  
+  private uniformLocations: UniformLocations = {
+    modelViewMatrix: null,
+    projectionMatrix: null,
+    normalMatrix: null,
+    diffuseColor: null,
+    lightPosition: null,
+    uTexture: null,
+    u_useTexture: null,
+    u_textureOffset: null
+  };
   
   // Geometry buffers
   private cubeGeometry: GeometryBuffers;
@@ -55,15 +86,15 @@ export class Renderer {
   private textureManager: TextureManager;
   
   // Ground tracking
-  private groundPosition: number = 0;
   private groundTextureOffset: number = 0;
   
-  // Rendering configurations
-  private readonly entityConfigs = {
+  // Default entity configurations
+  private readonly entityConfigs: Record<string, EntityConfig> = {
     player: { color: [1, 1, 1.0], geometry: 'sphere' },
     barrier: { color: [0.8, 0.2, 0.2] },
     obstacle: { color: [0.1, 0.1, 0.1] },
-    ground: { color: [1, 1, 1] }
+    ground: { color: [1, 1, 1] },
+    hole: { color: [0.05, 0.05, 0.05], geometry: 'sphere' }
   };
   
   // Light configuration
@@ -73,14 +104,12 @@ export class Renderer {
     private gl: WebGL2RenderingContext, 
     private shaderProgram: WebGLProgram
   ) {
-    // Initialize texture manager
+    // Initialize components
     this.textureManager = new TextureManager(gl);
-    
-    // Initialize matrices
     this.projectionMatrix = new Float32Array(16);
     this.viewMatrix = new Float32Array(16);
     
-    // Initialize rendering pipeline
+    // Setup rendering pipeline
     this.setupShaderLocations();
     this.cubeGeometry = createCubeGeometry(this.gl);
     this.sphereGeometry = createSphereGeometry(this.gl);
@@ -91,28 +120,28 @@ export class Renderer {
   }
   
   /**
-   * Load textures for the game
+   * Load all textures required for the game
    */
   public async loadTextures(): Promise<void> {
-    await this.textureManager.loadTextures([
-      { name: 'player', url: '/assets/textures/woodplank_ball.png' },
-      { name: 'ground', url: '/assets/textures/brick_floor.jpg' }
-    ]);
+    try {
+      await this.textureManager.loadTextures([
+        { name: 'player', url: '/assets/textures/woodplank_ball.png' },
+        { name: 'ground', url: '/assets/textures/brick_floor.jpg' }
+      ]);
+    } catch (error) {
+      console.error('Failed to load textures:', error);
+    }
   }
   
   /**
    * Update ground position for scrolling effect
    */
   public updateGroundPosition(delta: number, gameSpeed: number): void {
-    // Update ground position for scrolling effect
-    this.groundPosition += delta * gameSpeed; // Adjust multiplier for scroll speed
-    
     // Update texture offset for scrolling ground texture
-    // Add a scaling factor (0.5) to match obstacle movement speed
     const textureScrollFactor = 0.05;
     this.groundTextureOffset += delta * gameSpeed * textureScrollFactor;
     
-    // Reset when it gets too large to avoid floating point precision issues
+    // Reset when too large to avoid floating point precision issues
     if (this.groundTextureOffset > 100) {
       this.groundTextureOffset = 0;
     }
@@ -160,9 +189,8 @@ export class Renderer {
     const near = 0.1;
     const far = 100.0;
     
-    // Calculate perspective projection matrix using our utility
+    // Calculate perspective projection matrix
     this.projectionMatrix = createPerspectiveMatrix(fieldOfView, aspectRatio, near, far);
-    
     this.updateViewMatrix();
   }
   
@@ -173,9 +201,9 @@ export class Renderer {
     // Camera parameters
     const eye = [0, 10, 20]; // Camera position: higher and further back
     const center = [0, 5, 0]; // Look slightly ahead of the player
-    const up = [0, 1, 0]; // Up direction
+    const up = [0, 1, 0];     // Up direction
     
-    // Calculate view matrix using our utility
+    // Calculate view matrix
     this.viewMatrix = createViewMatrix(eye, center, up);
   }
   
@@ -183,7 +211,7 @@ export class Renderer {
    * Main render method
    */
   public render(player: Player, obstacles: Obstacle[]): void {
-    this.initializeFrame();
+    this.beginFrame();
     this.renderGround();
     this.renderObstacles(obstacles);
     this.renderPlayer(player);
@@ -192,7 +220,7 @@ export class Renderer {
   /**
    * Initialize frame for rendering
    */
-  private initializeFrame(): void {
+  private beginFrame(): void {
     // Clear buffers
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     
@@ -212,15 +240,13 @@ export class Renderer {
    * Render the player entity
    */
   private renderPlayer(player: Player): void {
-    const config: RenderConfig = {
-      ...this.entityConfigs.player,
+    this.renderEntity({
+      position: player.position,
+      rotation: player.rotation,
       useTexture: true,
       textureName: 'player',
-      rotation: player.rotation // Pass player's rotation to renderEntity
-    };
-    
-    // Render player as a sphere at position
-    this.renderEntity(player.position, config);
+      ...this.entityConfigs.player
+    });
   }
   
   /**
@@ -228,15 +254,35 @@ export class Renderer {
    */
   private renderObstacles(obstacles: Obstacle[]): void {
     for (const obstacle of obstacles) {
-      const config = obstacle.type === 'barrier' 
-        ? this.entityConfigs.barrier 
-        : this.entityConfigs.obstacle;
+      const config = this.entityConfigs[obstacle.type] || this.entityConfigs.obstacle;
       
-      // Render obstacle with appropriate configuration
-      this.renderEntity(obstacle.position, {
-        ...config,
-        scale: obstacle.size || obstacle.scale
-      });
+      if (obstacle.type === 'hole') {
+        // Create a flattened sphere for the hole
+        const holePosition = new Vector3([
+          obstacle.position[0],
+          obstacle.position[1] + 0.05, // Raise slightly to be visible
+          obstacle.position[2]
+        ]);
+        
+        // Use the obstacle's size for scale, but make it very flat
+        const holeScale = new Vector3([
+          obstacle.size?.[0] || 1.5,
+          0.1, // Very flat
+          obstacle.size?.[2] || 1.5
+        ]);
+        
+        this.renderEntity({
+          position: holePosition,
+          scale: holeScale,
+          ...config
+        });
+      } else {
+        this.renderEntity({
+          position: obstacle.position,
+          scale: obstacle.size || obstacle.scale,
+          ...config
+        });
+      }
     }
   }
   
@@ -244,60 +290,75 @@ export class Renderer {
    * Render the ground
    */
   private renderGround(): void {
-    // Calculate ground position based on scrolling
     const groundPosition = new Vector3(0, -3, 0);
     const groundScale = new Vector3(50, 0.4, 100);
+    const textureOffset = [0, this.groundTextureOffset];
     
-    // Define texture offset for scrolling ground (using Z direction for forward movement)
-    const textureOffset = [0, this.groundTextureOffset]; // Second value controls forward scrolling
-    
-    this.renderEntity(groundPosition, {
-      ...this.entityConfigs.ground,
+    this.renderEntity({
+      position: groundPosition,
       scale: groundScale,
       useTexture: true,
       textureName: 'ground',
-      textureOffset: textureOffset
+      textureOffset: textureOffset,
+      ...this.entityConfigs.ground
     });
   }
   
   /**
-   * Render a generic entity with position and configuration
+   * Set texture for rendering
    */
-  private renderEntity(position: Vector3, config: RenderConfig): void {
-    // Set entity color
-    this.gl.uniform3fv(this.uniformLocations.diffuseColor, config.color);
-    
-    // Handle textures
-    const useTexture = config.useTexture && config.textureName && 
-                      this.textureManager.getTexture(config.textureName);
-    
-    this.gl.uniform1i(this.uniformLocations.u_useTexture, useTexture ? 1 : 0);
-    
-    // Set texture offset if provided (for scrolling textures)
-    if (config.textureOffset) {
-      this.gl.uniform2fv(this.uniformLocations.u_textureOffset, config.textureOffset);
-    } else {
-      this.gl.uniform2fv(this.uniformLocations.u_textureOffset, [0, 0]);
+  private setTexture(textureName: string | undefined, useTexture: boolean): boolean {
+    // Skip if texture not requested
+    if (!useTexture || !textureName) {
+      this.gl.uniform1i(this.uniformLocations.u_useTexture, 0);
+      return false;
     }
     
-    if (useTexture && config.textureName) {
-      const texture = this.textureManager.getTexture(config.textureName);
-      if (texture) {
-        // Activate texture unit 0
-        this.gl.activeTexture(this.gl.TEXTURE0);
-        // Bind the texture
-        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-        // Tell the shader to use texture unit 0
-        this.gl.uniform1i(this.uniformLocations.uTexture, 0);
-      }
+    // Get texture from manager
+    const texture = this.textureManager.getTexture(textureName);
+    if (!texture) {
+      this.gl.uniform1i(this.uniformLocations.u_useTexture, 0);
+      return false;
     }
+    
+    // Set texture uniforms
+    this.gl.uniform1i(this.uniformLocations.u_useTexture, 1);
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+    this.gl.uniform1i(this.uniformLocations.uTexture, 0);
+    
+    return true;
+  }
+  
+  /**
+   * Render a generic entity with options
+   */
+  private renderEntity(options: RenderOptions): void {
+    const {
+      position,
+      scale,
+      rotation,
+      useTexture = false,
+      textureName,
+      textureOffset = [0, 0],
+      color
+    } = options;
+    
+    // Set entity color (use provided or default)
+    this.gl.uniform3fv(this.uniformLocations.diffuseColor, color || [1, 1, 1]);
+    
+    // Handle texture setup
+    this.setTexture(textureName, useTexture);
+    
+    // Set texture offset
+    this.gl.uniform2fv(this.uniformLocations.u_textureOffset, textureOffset);
     
     // Create model-view matrix with rotation if provided
     const modelViewMatrix = createModelViewMatrix(
       this.viewMatrix, 
       {x: position.x, y: position.y, z: position.z}, 
-      config.scale ? {x: config.scale.x, y: config.scale.y, z: config.scale.z} : undefined,
-      config.rotation // Pass rotation to matrix creation function
+      scale ? {x: scale.x, y: scale.y, z: scale.z} : undefined,
+      rotation
     );
     
     // Set model-view matrix uniform
@@ -315,8 +376,9 @@ export class Renderer {
       nMatrix
     );
     
-    // Draw the entity with appropriate geometry
-    if (config.geometry === 'sphere') {
+    // Draw with appropriate geometry
+    const geometry = options.geometry || 'cube';
+    if (geometry === 'sphere') {
       this.drawSphere();
     } else {
       this.drawCube();
@@ -324,14 +386,14 @@ export class Renderer {
   }
   
   /**
-   * Draw a cube using the current bind buffers
+   * Draw a cube using the cube geometry buffers
    */
   private drawCube(): void {
     drawCube(this.gl, this.cubeGeometry, this.attribLocations);
   }
   
   /**
-   * Draw a sphere using the sphere buffers
+   * Draw a sphere using the sphere geometry buffers
    */
   private drawSphere(): void {
     drawSphere(this.gl, this.sphereGeometry, this.attribLocations);
