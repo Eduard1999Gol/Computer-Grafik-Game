@@ -3,8 +3,8 @@
 import { EndlessRunnerGame } from '@/game/game';
 import React from "react";
 import { RestartGameDialog } from '@/components/restart-game-dialog';
-import { StartGameDialog } from '@/components/start-game-dialog';
-import { DifficultyButton } from '@/components/difficulty-button';
+import GamePanel from '@/components/game-panel';
+import { WelcomeDialog } from '@/components/welcome-dialog';
 
 export default () => {
   const game = React.useRef<EndlessRunnerGame | null>(null);
@@ -55,13 +55,15 @@ export default () => {
     })();
   }, []);
 
-  const handleStartGame = () => {
+  const handleStartGame = (hardMode: boolean = false) => {
     if (game.current) {
       setGameStarted(true);
+      setHardDifficulty(hardMode);
+      game.current.setHardDifficulty(hardMode);
       game.current.start();
     }
     else console.error("Failed loading game");
-  }
+  };
 
   const handleRestartGame = () => {
     if (game.current) {
@@ -77,45 +79,25 @@ export default () => {
       setHardDifficulty(!hardDifficulty);
     }
     else console.error("Failed loading game");
-  }
+  };
 
   const getCurrentDifficulty = () => {
-    if (game.current) {
-      return game.current.getHardDifficulty();
-    }
-    else {
-      console.error("Failed loading game");
-      return false;
-    }
-  }
+    // Return the React state value instead of accessing the game object
+    // This ensures we always have a valid boolean even if the game isn't loaded
+    return hardDifficulty;
+  };
 
   return (
     <div className="relative h-screen w-screen">
       <canvas className="absolute inset-0 h-full w-full" ref={canvas} />
   
-      <div className="absolute top-0 left-0 w-full p-4">
-        <div className="flex w-full flex-col items-center">
-          <span className="text-white text-lg font-bold">Endless Runner Game</span>
-  
-          <div className="flex justify-between w-full max-w-md items-center mb-4">
-            <div className="text-white">
-              <span className="font-bold">Score:</span> {score}
-            </div>
-            <div className="text-white">
-              <span className="font-bold">High Score:</span> {highScore}
-            </div>
-          </div>
-
-          {!gameStarted && (<StartGameDialog onStart={handleStartGame} changeDifficulty={changeDifficulty} hardDifficulty={getCurrentDifficulty}/>)}
+      <div className="absolute top-0 w-full">
+        {gameStarted && <GamePanel score={score} highScore={highScore}/>}
+        
+        <div className="flex w-full flex-col items-center mt-4">
+          {!gameStarted && (<WelcomeDialog onStart={handleStartGame} changeDifficulty={changeDifficulty} hardDifficulty={getCurrentDifficulty} />)}
           
           {gameStarted && gameOver && (<RestartGameDialog onRestart={handleRestartGame} changeDifficulty={changeDifficulty} hardDifficulty={getCurrentDifficulty}/>)}
-  
-          {gameStarted && !gameOver && (
-            <div className="text-sm text-white/70 mt-2">
-              <p>⬅️ ➡️ Arrow keys to move side to side</p>
-              <p>⬆️ or Space to jump</p>
-            </div>
-          )}
         </div>
       </div>
     </div>
