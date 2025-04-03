@@ -29,7 +29,7 @@ export class ObstacleManager {
       obstacle.position[2] += deltaTime * 10 * gameSpeed;
       
       // Remove obstacles that are behind the player
-      if (obstacle.position[2] > 5) {
+      if (obstacle.position[2] > 10) {
         this.obstacles.splice(i, 1);
       }
     }
@@ -47,11 +47,11 @@ export class ObstacleManager {
     // Choose a random lane
     const laneCount = this.hardDifficulty ? 5 : 3
     const lane = Math.floor(Math.random() * laneCount); // 0, 1, or 2
-    const xPos = (lane - Math.floor(laneCount / 2)) * 2; // Convert lane to x position, so that middle lane is x = 0 with distance 2 between lanes
+    const xPos = (lane - Math.floor(laneCount / 2)) * 3; // Convert lane to x position, so that middle lane is x = 0 with distance 3 between lanes
     
     // Create a new obstacle
     let obstacleType: Obstacle['type'];
-
+    
     if (Math.random() > 0.3) {
       const barrierType = Math.random();
       if (barrierType <= 0.33) obstacleType = 'small-barrier';
@@ -67,19 +67,31 @@ export class ObstacleManager {
         obstacleSize = new Vector3([1.5, 0.05, 1.5]); // Wider and flatter to look like a circle
         break;
       case 'large-barrier':
-        obstacleSize = new Vector3([0.8, 2.5, 0.3]);
+        obstacleSize = new Vector3([0.8, 2.5, 0.8]);
         break;
       case 'floating-barrier':
-        obstacleSize = new Vector3([0.8, 0.5, 0.5]);
+        obstacleSize = new Vector3([0.8, 0.5, 0.8]);
         break;
       default:
-        obstacleSize = new Vector3([0.8, 0.8, 0.5]);
+        obstacleSize = new Vector3([1, 1, 1]);//new Vector3([0.8, 0.8, 0.5]);
     }
 
-    let yPos = -2.0;
-    if (obstacleType == 'small-barrier' || obstacleType == 'large-barrier') yPos = 0;
-    else if (obstacleType == 'floating-barrier') yPos = 2.5;
-    else if (obstacleType == 'hole') yPos = -2.4; // Position holes slightly above the ground (ground is at -3)
+    let yPos = 0.0;
+    // ground texture begins at -1, player texture goes from height -1 to 1
+    switch(obstacleType) {
+      case 'small-barrier':
+        yPos = -1 + obstacleSize[1];
+        break;
+      case 'large-barrier':
+        yPos = -1 + obstacleSize[1];
+        break;
+      case 'floating-barrier':
+        yPos = 1.5 + obstacleSize[1];
+        break;
+      case 'hole':
+        yPos = -0.8; // Position holes slightly 0.2 above the ground texture
+        break;
+    }
     
     this.obstacles.push({
       position: new Vector3([
@@ -94,54 +106,36 @@ export class ObstacleManager {
   }
   
   checkCollision(player: Player): boolean {
-    const xPosPlayer = player.position[0];
-    const yPosPlayer = player.position[1];
-    const zPosPlayer = player.position[2];
-    const playerSize = player.size;
-    
-     for (const obstacle of this.obstacles) {
-       // Only check obstacles close to the player (z-axis)
-      const zPosObstacle = obstacle.position[2];
-      if (Math.abs(zPosObstacle) >= this.zCollisionDistance || zPosObstacle > 0.0) return false; 
-      const xPosObstacle = obstacle.position[0];
-      const yPosObstacle = obstacle.position[1]; 
-      const xDiff = Math.abs(xPosObstacle - xPosPlayer);
-      const yDiff = yPosPlayer - yPosObstacle;
+    // boundaries for player texture
+    const xPosPlayerTexBound = player.position[0] + 1;
+    const xNegPlayerTexBound = player.position[0] - 1;
+    const yPosPlayerTexBound = player.position[1] + 1;
+    const yNegPlayerTexBound = player.position[1] - 1;
+    const zPosPlayerTexBound = player.position[2] + 1;
+    const zNegPlayerTexBound = player.position[2] - 1;
+
+    for (const obstacle of this.obstacles) {
+      // boundaries for obstacle texture
+      const xPosObstacleTexBound = obstacle.position[0] + obstacle.size[0];
+      const xNegObstacleTexBound = obstacle.position[0] - obstacle.size[0];
+      const yPosObstacleTexBound = obstacle.position[1] + obstacle.size[1];
+      const yNegObstacleTexBound = obstacle.position[1] - obstacle.size[1];
+      const zPosObstacleTexBound = obstacle.position[2] + obstacle.size[2];
+      const zNegObstacleTexBound = obstacle.position[2] - obstacle.size[2];
+
+      // only check obstacles close to the player (z-axis)
+      if (!intervalIntersect(zNegPlayerTexBound, zPosPlayerTexBound, zNegObstacleTexBound, zPosObstacleTexBound))
+        return false;
       
       // check if player is in the same lane as the obstacle
-      if (xDiff >= this.xCollisionDistance) return false; 
-      switch (obstacle.type) {
-        case 'hole':
-          if (yPosPlayer <= 0) {
-            console.log("yPl: %f, yOb: %f", yPosPlayer, yPosObstacle);
-            console.log("zPl: %f, zOb: %f", zPosPlayer, zPosObstacle);
-            console.log(obstacle.type);
-            
-            return true;
-          }
-          break;
-        case 'floating-barrier':
-          if (yPosPlayer >= yPosObstacle) {
-            console.log("xPl: %f, xOb: %f", xPosPlayer, xPosObstacle);
-            console.log("yPl: %f, yOb: %f", yPosPlayer, yPosObstacle);
-            console.log("zPl: %f, zOb: %f", zPosPlayer, zPosObstacle);
-            return true;
-          };
-          break;
-        case 'small-barrier':
-          if (yPosPlayer <= yPosObstacle) {
-            console.log("xPl: %f, xOb: %f", xPosPlayer, xPosObstacle);
-            console.log("yPl: %f, yOb: %f", yPosPlayer, yPosObstacle);
-            console.log("zPl: %f, zOb: %f", zPosPlayer, zPosObstacle);
-            return true;
-          };
-          break;
-        default:
-          console.log("xPl: %f, xOb: %f", xPosPlayer, xPosObstacle);
-          console.log("yPl: %f, yOb: %f", yPosPlayer, yPosObstacle);
-          console.log("zPl: %f, zOb: %f", zPosPlayer, zPosObstacle);
-          return true;
-      } 
+      if (!intervalIntersect(xNegPlayerTexBound, xPosPlayerTexBound, xNegObstacleTexBound, xPosObstacleTexBound))
+        return false;
+
+      // check if player height is sufficient
+      if (!intervalIntersect(yNegPlayerTexBound, yPosPlayerTexBound, yNegObstacleTexBound, yPosObstacleTexBound))
+        return false;
+      
+      return true;
      }
     
     return false;
@@ -150,4 +144,18 @@ export class ObstacleManager {
   getObstacles(): Obstacle[] {
     return this.obstacles;
   }
+}
+
+const inInterval = (num: number, lowerBound: number, upperbound: number): boolean => {
+  // use min / max to avoid wrong return values because of switched bounds
+  return (num >= Math.min(lowerBound, upperbound)) && (num <= Math.max(lowerBound, upperbound));
+}
+
+const intervalIntersect = (lowerBoundA: number, upperBoundA: number, lowerBoundB: number, upperBoundB: number): boolean => {
+  return (
+    inInterval(lowerBoundA, lowerBoundB, upperBoundB) ||
+    inInterval(upperBoundA, lowerBoundB, upperBoundB) ||
+    inInterval(lowerBoundB, lowerBoundA, upperBoundA) ||
+    inInterval(upperBoundB, lowerBoundA, upperBoundA)
+    );
 }

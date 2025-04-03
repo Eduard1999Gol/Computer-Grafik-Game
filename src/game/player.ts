@@ -3,7 +3,6 @@ import { Vector3 } from '@math.gl/core';
 export class Player {
   position: Vector3;
   velocity: Vector3;
-  size: Vector3;
   lane: number; // 0 = left, 1 = center, 2 = right
   laneCount: number;
   isJumping: boolean;
@@ -14,7 +13,6 @@ export class Player {
   constructor(hardDifficulty: boolean) {
     this.position = new Vector3([0, 0, 0]);
     this.velocity = new Vector3([0, 0, 0]);
-    this.size = new Vector3([0.5, 0.5, 0.5]); // Player size (width, height, depth)
     this.lane = hardDifficulty ? 2 : 1; // Start in center lane
     this.isJumping = false;
     this.hardDifficulty = hardDifficulty;
@@ -62,7 +60,7 @@ export class Player {
     }
     
     // Update lane position (smooth transition)
-    const targetX = (this.lane - Math.floor(this.laneCount / 2)) * 2; // Convert lane to x position (-2, 0, 2)
+    const targetX = (this.lane - Math.floor(this.laneCount / 2)) * 3; // Convert lane to x position (-3, 0, 3) (normal difficulty)
     const previousX = this.position[0];
     this.position[0] += (targetX - this.position[0]) * 10 * deltaTime;
     
