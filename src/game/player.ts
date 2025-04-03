@@ -36,7 +36,7 @@ export class Player {
   jump(): void {
     // Only allow jump if player is on the ground and cooldown is over
     if (!this.isJumping && this.jumpCooldown <= 0) {
-      this.velocity[1] = 12.0; // Jump velocity - increased for better feel
+      this.velocity[1] = 15.0; // Jump velocity - increased for better feel
       this.isJumping = true;
       this.jumpCooldown = 0.1; // Small cooldown to prevent double jumps
     }
