@@ -10,15 +10,13 @@ interface Obstacle {
 
 export class ObstacleManager {
   private obstacles: Obstacle[] = [];
-  private spawnDistance: number = 50; // Distance ahead where obstacles spawn
+  private spawnDistance: number = 200; // Distance ahead where obstacles spawn
   private spawnTimer: number = 0;
   private initialSpawnDelay: number = 2.0; // Give player time to get ready
-  private xCollisionDistance: number = 0.7; // Default distances between player and obstacle that leads to collision
-  private zCollisionDistance: number = 1; 
   private hardDifficulty: boolean;
   constructor(hardDifficulty: boolean) {
     // Initial delay before spawning first obstacle
-    this.spawnTimer = this.initialSpawnDelay;
+    this.spawnTimer = 0.0; //this.initialSpawnDelay;
     this.hardDifficulty = hardDifficulty;
   }
   
@@ -107,21 +105,31 @@ export class ObstacleManager {
   
   checkCollision(player: Player): boolean {
     // boundaries for player texture
-    const xPosPlayerTexBound = player.position[0] + 1;
-    const xNegPlayerTexBound = player.position[0] - 1;
-    const yPosPlayerTexBound = player.position[1] + 1;
-    const yNegPlayerTexBound = player.position[1] - 1;
-    const zPosPlayerTexBound = player.position[2] + 1;
-    const zNegPlayerTexBound = player.position[2] - 1;
+    const xPosPlayer = player.position[0];
+    const yPosPlayer = player.position[1];
+    const zPosPlayer = player.position[2];
+    const xPosPlayerTexBound = xPosPlayer + 1;
+    const xNegPlayerTexBound = xPosPlayer - 1;
+    const yPosPlayerTexBound = yPosPlayer + 1;
+    const yNegPlayerTexBound = yPosPlayer - 1;
+    const zPosPlayerTexBound = zPosPlayer + 1;
+    const zNegPlayerTexBound = zPosPlayer - 1;
 
     for (const obstacle of this.obstacles) {
       // boundaries for obstacle texture
-      const xPosObstacleTexBound = obstacle.position[0] + obstacle.size[0];
-      const xNegObstacleTexBound = obstacle.position[0] - obstacle.size[0];
-      const yPosObstacleTexBound = obstacle.position[1] + obstacle.size[1];
-      const yNegObstacleTexBound = obstacle.position[1] - obstacle.size[1];
-      const zPosObstacleTexBound = obstacle.position[2] + obstacle.size[2];
-      const zNegObstacleTexBound = obstacle.position[2] - obstacle.size[2];
+      const xPosObstacle = obstacle.position[0];
+      const yPosObstacle = obstacle.position[1];
+      const zPosObstacle = obstacle.position[2];
+      const xTexStart = obstacle.size[0];
+      const yTexStart = obstacle.size[1];
+      const zTexStart = obstacle.size[2];
+
+      const xPosObstacleTexBound = xPosObstacle + xTexStart;
+      const xNegObstacleTexBound = xPosObstacle - xTexStart;
+      const yPosObstacleTexBound = yPosObstacle + yTexStart;
+      const yNegObstacleTexBound = yPosObstacle - yTexStart;
+      const zPosObstacleTexBound = zPosObstacle + zTexStart;
+      const zNegObstacleTexBound = zPosObstacle - zTexStart;
 
       // only check obstacles close to the player (z-axis)
       if (!intervalIntersect(zNegPlayerTexBound, zPosPlayerTexBound, zNegObstacleTexBound, zPosObstacleTexBound))

@@ -88,12 +88,15 @@ export class Renderer {
   
   // Ground tracking
   private groundTextureOffset: number = 0;
+
+  private hardDifficulty: () => boolean;
   
   // Default entity configurations
   private readonly entityConfigs: Record<string, EntityConfig> = {
     player: { color: [1, 1, 1.0], geometry: 'sphere' },
     obstacle: { color: [0.7, 0.7, 0.7], geometry: 'cube'},
     ground: { color: [1, 1, 1] },
+    lanesBorder: { color: [1, 1, 1] },
     hole: { color: [1, 1, 1], geometry: 'sphere' }
   };
   
@@ -102,12 +105,15 @@ export class Renderer {
   
   constructor(
     private gl: WebGL2RenderingContext, 
-    private shaderProgram: WebGLProgram
+    private shaderProgram: WebGLProgram,
+    private getHardDifficulty: () => boolean
   ) {
     // Initialize components
     this.textureManager = new TextureManager(gl);
     this.projectionMatrix = new Float32Array(16);
     this.viewMatrix = new Float32Array(16);
+
+    this.hardDifficulty = getHardDifficulty;
     
     // Setup rendering pipeline
     this.setupShaderLocations();
@@ -140,7 +146,7 @@ export class Renderer {
    */
   public updateGroundPosition(delta: number, gameSpeed: number): void {
     // Update texture offset for scrolling ground texture
-    const textureScrollFactor = 0.05;
+    const textureScrollFactor = 0.025;
     this.groundTextureOffset += delta * gameSpeed * textureScrollFactor;
     
     // Reset when too large to avoid floating point precision issues
@@ -189,7 +195,7 @@ export class Renderer {
     // Set up a perspective projection
     const fieldOfView = (45 * Math.PI) / 180; // 45 degrees in radians
     const near = 0.1;
-    const far = 100.0;
+    const far = 200.0; // 100.0
     
     // Calculate perspective projection matrix
     this.projectionMatrix = createPerspectiveMatrix(fieldOfView, aspectRatio, near, far);
@@ -215,6 +221,7 @@ export class Renderer {
   public render(player: Player, obstacles: Obstacle[]): void {
     this.beginFrame();
     this.renderGround();
+    this.renderLaneBorders();
     this.renderObstacles(obstacles);
     this.renderPlayer(player);
   }
@@ -302,7 +309,7 @@ export class Renderer {
    */
   private renderGround(): void {
     const groundPosition = new Vector3(0, -1.4, 0);
-    const groundScale = new Vector3(50, 0.4, 100);
+    const groundScale = new Vector3(50, 0.4, 200); // new Vector3(50, 0.4, 100);
     const textureOffset = [0, this.groundTextureOffset];
     
     this.renderEntity({
@@ -313,6 +320,21 @@ export class Renderer {
       textureOffset: textureOffset,
       ...this.entityConfigs.ground
     });
+  }
+
+  private renderLaneBorders(): void {
+    const laneCount = this.hardDifficulty() ? 5 : 3;
+    const laneBorders = getLaneBorderPositions(laneCount);
+    const borderScale = new Vector3(0.1, 0.1, 200);
+
+    for (let i = 0; i < laneBorders.length; i++) {
+      this.renderEntity({
+        position: laneBorders[i],
+        scale: borderScale,
+        useTexture: false,
+        ...this.entityConfigs.laneBorders
+      });
+    }
   }
   
   /**
@@ -396,4 +418,16 @@ export class Renderer {
       drawCube(this.gl, this.cubeGeometry, this.attribLocations);
     }
   }
+}
+
+const getLaneBorderPositions = (laneCount: number) => {
+  let positions: Vector3[] = [];
+
+  for (let i = 0; i <= Math.floor(laneCount / 2) * 3; i += 3) {
+    const xPos = i + 1.5;
+    const left = new Vector3(-xPos, -0.9, 0);
+    const right = new Vector3(xPos, -0.9, 0);
+    positions.push(left, right);
+  }
+  return positions;
 }

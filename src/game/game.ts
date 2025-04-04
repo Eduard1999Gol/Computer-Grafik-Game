@@ -14,7 +14,11 @@ export class EndlessRunnerGame {
   private shaderProgram: WebGLProgram | null = null;
   
   private lastFrameTime: number = 0;
-  private gameSpeed: number = 1;
+  private gameSpeed: number = 1.0;
+
+  // just for debugging purposes
+  private lastLoggedSpeed: number = 1.0;
+
   private score: number = 0;
   private gameOver: boolean = false;
   private hardDifficulty: boolean = false;
@@ -35,7 +39,7 @@ export class EndlessRunnerGame {
     if (!this.shaderProgram) throw new Error('Failed to create shader program');
     
     // Initialize game components
-    this.renderer = new Renderer(gl, this.shaderProgram);
+    this.renderer = new Renderer(gl, this.shaderProgram, this.getHardDifficulty.bind(this));
     this.player = new Player(this.hardDifficulty);
     this.obstacleManager = new ObstacleManager(this.hardDifficulty);
     
@@ -144,6 +148,7 @@ export class EndlessRunnerGame {
     
     // Increase difficulty over time
     this.gameSpeed += deltaTime * (this.hardDifficulty ? 0.05 : 0.01);
+    this.maybeLogGameSpeed();
     
     // Increment score
     this.score += deltaTime * 10 * this.gameSpeed;
@@ -179,5 +184,15 @@ export class EndlessRunnerGame {
     this.canvas.height = this.canvas.clientHeight;
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     this.renderer.updateProjection(this.canvas.width / this.canvas.height);
+  }
+
+  // helper function for debugging purposes
+  private maybeLogGameSpeed(): void {
+    const roundedSpeed = Math.floor(this.gameSpeed * 10) / 10;
+
+    if (roundedSpeed !== this.lastLoggedSpeed) {
+      console.log("gameSpeed: ", roundedSpeed);
+      this.lastLoggedSpeed = roundedSpeed;
+    }
   }
 }
