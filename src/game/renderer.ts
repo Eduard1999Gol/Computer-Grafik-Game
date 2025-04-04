@@ -309,7 +309,7 @@ export class Renderer {
    */
   private renderGround(): void {
     const groundPosition = new Vector3(0, -1.4, 0);
-    const groundScale = new Vector3(50, 0.4, 200); // new Vector3(50, 0.4, 100);
+    const groundScale = new Vector3(50, 0.4, 200);
     const textureOffset = [0, this.groundTextureOffset];
     
     this.renderEntity({

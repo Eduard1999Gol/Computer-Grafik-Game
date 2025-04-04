@@ -136,11 +136,6 @@ export class ObstacleManager {
   }
 }
 
-const inInterval = (num: number, lowerBound: number, upperbound: number): boolean => {
-  // use min / max to avoid wrong return values because of switched bounds
-  return (num >= Math.min(lowerBound, upperbound)) && (num <= Math.max(lowerBound, upperbound));
-}
-
 const getBounds = (position: Vector3, size: Vector3) => ({
   xNegative: position[0] - size[0],
   xPositive: position[0] + size[0],
