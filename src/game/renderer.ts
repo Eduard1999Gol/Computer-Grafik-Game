@@ -195,7 +195,7 @@ export class Renderer {
     // Set up a perspective projection
     const fieldOfView = (45 * Math.PI) / 180; // 45 degrees in radians
     const near = 0.1;
-    const far = 200.0; // 100.0
+    const far = 200.0;
     
     // Calculate perspective projection matrix
     this.projectionMatrix = createPerspectiveMatrix(fieldOfView, aspectRatio, near, far);

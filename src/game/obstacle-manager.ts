@@ -27,8 +27,18 @@ export class ObstacleManager {
       obstacle.position[2] += deltaTime * 10 * gameSpeed;
       
       // Remove obstacles that are behind the player
-      if (obstacle.position[2] > 10) {
-        this.obstacles.splice(i, 1);
+      switch (obstacle.type) {
+        case 'hole':
+          if (obstacle.position[2] > 7) this.obstacles.splice(i, 1);
+          break;
+        case 'large-barrier':
+          if (obstacle.position[2] > 13) this.obstacles.splice(i, 1);
+          break;
+        case 'floating-barrier':
+          if (obstacle.position[2] > 12.5) this.obstacles.splice(i, 1);
+          break;
+        default:
+          if (obstacle.position[2] > 8.5) this.obstacles.splice(i, 1);
       }
     }
     
@@ -62,16 +72,16 @@ export class ObstacleManager {
     let obstacleSize = new Vector3();
     switch (obstacleType) {
       case 'hole':
-        obstacleSize = new Vector3([1.5, 0.05, 1.5]); // Wider and flatter to look like a circle
+        obstacleSize = new Vector3(1.35, 0.05, 1.35); // Wider and flatter to look like a circle
         break;
       case 'large-barrier':
-        obstacleSize = new Vector3([0.8, 2.5, 0.8]);
+        obstacleSize = new Vector3(0.8, 2.5, 0.8);
         break;
       case 'floating-barrier':
-        obstacleSize = new Vector3([0.8, 1, 0.8]);
+        obstacleSize = new Vector3(0.8, 1, 0.8);
         break;
       default:
-        obstacleSize = new Vector3([0.8, 0.8, 0.8]);
+        obstacleSize = new Vector3(0.8, 0.8, 0.8);
     }
 
     let yPos = 0.0;
@@ -102,48 +112,20 @@ export class ObstacleManager {
       type: obstacleType
     });
   }
-  
+
   checkCollision(player: Player): boolean {
     // boundaries for player texture
-    const xPosPlayer = player.position[0];
-    const yPosPlayer = player.position[1];
-    const zPosPlayer = player.position[2];
-    const xPosPlayerTexBound = xPosPlayer + 1;
-    const xNegPlayerTexBound = xPosPlayer - 1;
-    const yPosPlayerTexBound = yPosPlayer + 1;
-    const yNegPlayerTexBound = yPosPlayer - 1;
-    const zPosPlayerTexBound = zPosPlayer + 1;
-    const zNegPlayerTexBound = zPosPlayer - 1;
+    const playerBounds = getBounds(player.position, new Vector3(1, 1, 1));
 
     for (const obstacle of this.obstacles) {
       // boundaries for obstacle texture
-      const xPosObstacle = obstacle.position[0];
-      const yPosObstacle = obstacle.position[1];
-      const zPosObstacle = obstacle.position[2];
-      const xTexStart = obstacle.size[0];
-      const yTexStart = obstacle.size[1];
-      const zTexStart = obstacle.size[2];
-
-      const xPosObstacleTexBound = xPosObstacle + xTexStart;
-      const xNegObstacleTexBound = xPosObstacle - xTexStart;
-      const yPosObstacleTexBound = yPosObstacle + yTexStart;
-      const yNegObstacleTexBound = yPosObstacle - yTexStart;
-      const zPosObstacleTexBound = zPosObstacle + zTexStart;
-      const zNegObstacleTexBound = zPosObstacle - zTexStart;
-
-      // only check obstacles close to the player (z-axis)
-      if (!intervalIntersect(zNegPlayerTexBound, zPosPlayerTexBound, zNegObstacleTexBound, zPosObstacleTexBound))
-        return false;
-      
-      // check if player is in the same lane as the obstacle
-      if (!intervalIntersect(xNegPlayerTexBound, xPosPlayerTexBound, xNegObstacleTexBound, xPosObstacleTexBound))
-        return false;
-
-      // check if player height is sufficient
-      if (!intervalIntersect(yNegPlayerTexBound, yPosPlayerTexBound, yNegObstacleTexBound, yPosObstacleTexBound))
-        return false;
-      
-      return true;
+      const obstacleBounds = getBounds(obstacle.position, obstacle.size);
+      if (sphereIntersectsCube(
+        player.position,
+        1,
+        [obstacleBounds.xNegative, obstacleBounds.yNegative, obstacleBounds.zNegative],
+        [obstacleBounds.xPositive, obstacleBounds.yPositive, obstacleBounds.zPositive],
+      )) return true;
      }
     
     return false;
@@ -159,11 +141,40 @@ const inInterval = (num: number, lowerBound: number, upperbound: number): boolea
   return (num >= Math.min(lowerBound, upperbound)) && (num <= Math.max(lowerBound, upperbound));
 }
 
-const intervalIntersect = (lowerBoundA: number, upperBoundA: number, lowerBoundB: number, upperBoundB: number): boolean => {
-  return (
-    inInterval(lowerBoundA, lowerBoundB, upperBoundB) ||
-    inInterval(upperBoundA, lowerBoundB, upperBoundB) ||
-    inInterval(lowerBoundB, lowerBoundA, upperBoundA) ||
-    inInterval(upperBoundB, lowerBoundA, upperBoundA)
-    );
-}
+const getBounds = (position: Vector3, size: Vector3) => ({
+  xNegative: position[0] - size[0],
+  xPositive: position[0] + size[0],
+  yNegative: position[1] - size[1],
+  yPositive: position[1] + size[1],
+  zNegative: position[2] - size[2],
+  zPositive: position[2] + size[2],
+})
+
+const sphereIntersectsCube = (
+  sphereCenter: Vector3,
+  sphereRadius: number,
+  cubeNegBounds: [number, number, number],
+  cubePosBounds: [number, number, number]
+): boolean => {
+  // squared euclidian distance from sphere center to cube
+  // usage of squared distance to avoid usage of Math.sqrt
+  let distanceSquared = 0;
+
+  for (let i = 0; i < 3; i++) {
+    const sphereCoord = sphereCenter[i];
+    const min = cubeNegBounds[i];
+    const max = cubePosBounds[i];
+
+    // check if sphere is outside of cube
+    // if yes, add squared distance for the current dimension to the final euclidian distance
+    if (sphereCoord < min) {
+      distanceSquared += (min - sphereCoord) ** 2;
+    }
+    else if (sphereCoord > max) {
+      distanceSquared += (sphereCoord - max) ** 2;
+    }
+  }
+
+  return distanceSquared <= sphereRadius ** 2;
+};
+
