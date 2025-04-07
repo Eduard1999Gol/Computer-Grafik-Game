@@ -148,7 +148,7 @@ export class Renderer {
    */
   public updateGroundPosition(delta: number, gameSpeed: number): void {
     // Update texture offset for scrolling ground texture
-    const textureScrollFactor = 0.025;
+    const textureScrollFactor = 0.05;
     this.groundTextureOffset += delta * gameSpeed * textureScrollFactor;
     
     // Reset when too large to avoid floating point precision issues
@@ -331,11 +331,7 @@ export class Renderer {
    */
   private renderGround(): void {
     const groundPosition = new Vector3(0, -1.4, 0);
-<<<<<<< src/game/renderer.ts
     const groundScale = new Vector3(80, 0.4, 100);
-=======
-    const groundScale = new Vector3(50, 0.4, 200);
->>>>>>> src/game/renderer.ts
     const textureOffset = [0, this.groundTextureOffset];
     
     this.renderEntity({
