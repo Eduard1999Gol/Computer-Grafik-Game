@@ -94,7 +94,8 @@ export class Renderer {
     player: { color: [1, 1, 1.0], geometry: 'sphere' },
     obstacle: { color: [0.7, 0.7, 0.7], geometry: 'cube'},
     ground: { color: [1, 1, 1] },
-    hole: { color: [1, 1, 1], geometry: 'sphere' }
+    hole: { color: [1, 1, 1], geometry: 'sphere' },
+    sky: { color: [0.5, 0.7, 1], geometry: 'cube' },
   };
   
   // Light configuration
@@ -128,7 +129,8 @@ export class Renderer {
         { name: 'player', url: '/assets/textures/woodplank_ball.png' },
         { name: 'ground', url: '/assets/textures/ground2.jpg' },
         { name: 'barrier', url: '/assets/textures/bark.jpg' },
-        { name: 'hole', url: '/assets/textures/hole2.jpg' }
+        { name: 'hole', url: '/assets/textures/hole2.jpg' },
+        { name: 'sky', url: '/assets/textures/sky6.jpg' }
       ]);
           } catch (error) {
       console.error('Failed to load textures:', error);
@@ -214,6 +216,7 @@ export class Renderer {
    */
   public render(player: Player, obstacles: Obstacle[]): void {
     this.beginFrame();
+    this.renderSky();
     this.renderGround();
     this.renderObstacles(obstacles);
     this.renderPlayer(player);
@@ -237,6 +240,25 @@ export class Renderer {
       this.projectionMatrix
     );
   }
+
+    /**
+   * Render the sky background
+   */
+    private renderSky(): void {
+      // Create a large background plane
+      const skyPosition = new Vector3(0, 20, -90); // Far behind everything
+      const skyScale = new Vector3(80, 30, 10);   // Large plane to cover view
+      
+      this.renderEntity({
+        position: skyPosition,
+        scale: skyScale,
+        useTexture: true,
+        textureName: 'sky',
+        rotation: Math.PI,
+        geometry: 'cube',
+        ...this.entityConfigs.sky
+      });
+    }
   
   /**
    * Render the player entity
