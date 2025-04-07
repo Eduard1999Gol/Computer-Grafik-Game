@@ -72,16 +72,16 @@ export class ObstacleManager {
     let obstacleSize = new Vector3();
     switch (obstacleType) {
       case 'hole':
-        obstacleSize = new Vector3(1.35, 0.05, 1.35); // Wider and flatter to look like a circle
+        obstacleSize = new Vector3(1.35, 0.01, 1.35);
         break;
       case 'large-barrier':
         obstacleSize = new Vector3(0.8, 2.5, 0.8);
         break;
       case 'floating-barrier':
-        obstacleSize = new Vector3(0.8, 1, 0.8);
+        obstacleSize = new Vector3(0.8, 0.4, 1.5);
         break;
       default:
-        obstacleSize = new Vector3(0.8, 0.8, 0.8);
+        obstacleSize = new Vector3(1, 1, 1);
     }
 
     let yPos = 0.0;
@@ -94,7 +94,7 @@ export class ObstacleManager {
         yPos = -1 + obstacleSize[1];
         break;
       case 'floating-barrier':
-        yPos = 1.5 + obstacleSize[1];
+        yPos = 2 + obstacleSize[1];
         break;
       case 'hole':
         yPos = -0.8; // Position holes slightly 0.2 above the ground texture
@@ -120,7 +120,7 @@ export class ObstacleManager {
     for (const obstacle of this.obstacles) {
       // boundaries for obstacle texture
       const obstacleBounds = getBounds(obstacle.position, obstacle.size);
-      const collisionDistance = (obstacle.type == "hole") ? 0.75 : 1;
+      const collisionDistance = (obstacle.type == "hole") ? 0.79 : 1;
       if (sphereIntersectsCube(
         player.position,
         collisionDistance,
