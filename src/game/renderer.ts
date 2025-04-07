@@ -96,8 +96,9 @@ export class Renderer {
     player: { color: [1, 1, 1.0], geometry: 'sphere' },
     obstacle: { color: [0.7, 0.7, 0.7], geometry: 'cube'},
     ground: { color: [1, 1, 1] },
+    skybox: { color:[1, 0, 0] },
     lanesBorder: { color: [1, 1, 1] },
-    hole: { color: [1, 1, 1], geometry: 'sphere' }
+    hole: { color: [0, 0, 0], geometry: 'cube' }
   };
   
   // Light configuration
@@ -285,9 +286,9 @@ export class Renderer {
         this.renderEntity({
           position: holePosition,
           scale: holeScale,
-          useTexture: true,
-          textureName: 'hole',
-          geometry: 'sphere',
+          //useTexture: true,
+          //textureName: 'hole',
+          //geometry: 'sphere',
           ...config
         });
       } else {

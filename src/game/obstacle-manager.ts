@@ -10,7 +10,7 @@ interface Obstacle {
 
 export class ObstacleManager {
   private obstacles: Obstacle[] = [];
-  private spawnDistance: number = 200; // Distance ahead where obstacles spawn
+  private spawnDistance: number = 180; // Distance ahead where obstacles spawn
   private spawnTimer: number = 0;
   private initialSpawnDelay: number = 2.0; // Give player time to get ready
   private hardDifficulty: boolean;
@@ -113,22 +113,26 @@ export class ObstacleManager {
     });
   }
 
-  checkCollision(player: Player): boolean {
+  checkCollision(player: Player): [boolean, boolean] {
     // boundaries for player texture
     const playerBounds = getBounds(player.position, new Vector3(1, 1, 1));
 
     for (const obstacle of this.obstacles) {
       // boundaries for obstacle texture
       const obstacleBounds = getBounds(obstacle.position, obstacle.size);
+      const collisionDistance = (obstacle.type == "hole") ? 0.75 : 1;
       if (sphereIntersectsCube(
         player.position,
-        1,
+        collisionDistance,
         [obstacleBounds.xNegative, obstacleBounds.yNegative, obstacleBounds.zNegative],
         [obstacleBounds.xPositive, obstacleBounds.yPositive, obstacleBounds.zPositive],
-      )) return true;
+      )) {
+        if (obstacle.type == "hole") return [true, true];
+        else return [true, false]
+      }
      }
     
-    return false;
+    return [false, false];
   }
   
   getObstacles(): Obstacle[] {
