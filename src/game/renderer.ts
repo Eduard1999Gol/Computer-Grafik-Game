@@ -1,5 +1,5 @@
 import { Player } from './player';
-import { Vector3 } from '@math.gl/core';
+import { Vector2, Vector3 } from '@math.gl/core';
 import { normalMatrix } from '@/utility';
 import { 
   createPerspectiveMatrix, 
@@ -128,11 +128,12 @@ export class Renderer {
   public async loadTextures(): Promise<void> {
     try {
       await this.textureManager.loadTextures([
-        { name: 'player', url: '/assets/textures/woodplank_ball.png' },
-        { name: 'ground', url: '/assets/textures/ground2.jpg' },
-        { name: 'small-barrier', url: '/assets/textures/wood_cartoon.jpg' },
-        { name: 'large-barrier', url: '/assets/textures/wood_cartoon.jpg' },
-        { name: 'floating-barrier', url: '/assets/textures/wood_cartoon.jpg' },
+        { name: 'player', url: '/assets/textures/bark_cartoon.jpg' },
+        { name: 'ground', url: '/assets/textures/stone_cartoon_largest.png' },
+        { name: 'laneBorder', url: '/assets/textures/wood_pattern.jpg' },
+        { name: 'small-barrier', url: '/assets/textures/crate.jpg' },
+        { name: 'large-barrier', url: '/assets/textures/woodplanks_cartoon.jpg' },
+        { name: 'floating-barrier', url: '/assets/textures/barrel.jpg' },
         { name: 'hole', url: '/assets/textures/hole2.jpg' },
         { name: 'sky', url: '/assets/textures/sky6.jpg' }
       ]);
@@ -146,7 +147,7 @@ export class Renderer {
    */
   public updateGroundPosition(delta: number, gameSpeed: number): void {
     // Update texture offset for scrolling ground texture
-    const textureScrollFactor = 0.05;
+    const textureScrollFactor = 0.05 / 1.8;
     this.groundTextureOffset += delta * gameSpeed * textureScrollFactor;
     if (this.groundTextureOffset > 100) {
       this.groundTextureOffset = 0;
@@ -191,7 +192,7 @@ export class Renderer {
    */
   public updateProjection(aspectRatio: number): void {
     // Set up a perspective projection
-    const fieldOfView = (45 * Math.PI) / 180; // 45 degrees in radians
+    const fieldOfView = (40 * Math.PI) / 180; // 45 degrees in radians
     const near = 0.1;
     const far = 200.0;
     
@@ -249,8 +250,8 @@ export class Renderer {
    */
     private renderSky(): void {
       // Create a large background plane
-      const skyPosition = new Vector3(0, 0, -90); // Far behind everything
-      const skyScale = new Vector3(80, 30, 10);   // Large plane to cover view
+      const skyPosition = new Vector3(0, 0, -180); // Far behind everything
+      const skyScale = new Vector3(150, 56.25, 10);   // Large plane to cover view
       
       this.renderEntity({
         position: skyPosition,
@@ -322,8 +323,8 @@ export class Renderer {
    */
   private renderGround(): void {
     const groundPosition = new Vector3(0, -1.4, 0);
-    const groundScale = new Vector3(80, 0.4, 100);
-    const textureOffset = [0, this.groundTextureOffset];
+    const groundScale = new Vector3(150, 0.4, 180);
+    const textureOffset = [0.22, this.groundTextureOffset];
     
     this.renderEntity({
       position: groundPosition,
@@ -338,13 +339,14 @@ export class Renderer {
   private renderLaneBorders(): void {
     const laneCount = this.getHardDifficulty() ? 5 : 3;
     const laneBorders = getLaneBorderPositions(laneCount);
-    const borderScale = new Vector3(0.05, 0.05, 200);
+    const borderScale = new Vector3(0.05, 0.05, 180);
 
     for (let i = 0; i < laneBorders.length; i++) {
       this.renderEntity({
         position: laneBorders[i],
         scale: borderScale,
-        useTexture: false,
+        useTexture: true,
+        textureName: "laneBorder",
         ...this.entityConfigs.laneBorders
       });
     }
