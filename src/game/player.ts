@@ -10,6 +10,8 @@ export class Player {
   rotation: number = 0; // Current rotation angle in radians
   hardDifficulty: boolean;
   jumpSound: HTMLAudioElement;
+  switchSound : HTMLAudioElement;
+  
   
   constructor(hardDifficulty: boolean) {
     this.position = new Vector3([0, 0, 0]);
@@ -22,17 +24,26 @@ export class Player {
     // Jump sound
     this.jumpSound = new Audio('/assets/sounds/jump.mp3'); // Adjust path as needed
     this.jumpSound.volume = 0.5; // Adjust volume as needed
+
+    // Switch sound 
+    this.switchSound = new Audio('/assets/sounds/switch.mp3');
+    this.switchSound.volume = 0.5;
   }
   
   moveLeft(): void {
     if (this.lane > 0) {
       this.lane--;
+      this.switchSound.currentTime = 0;
+      this.switchSound.play().catch(e => console.error('Error playing switch sound:', e));
     }
   }
   
   moveRight(): void {
     if (this.lane < this.laneCount - 1) {
       this.lane++;
+      this.switchSound.currentTime = 0;
+      this.switchSound.play().catch(e => console.error('Error playing switch sound:', e));
+
     }
   }
   

@@ -94,9 +94,9 @@ export class Renderer {
     player: { color: [1, 1, 1.0], geometry: 'sphere' },
     obstacle: { color: [0.7, 0.7, 0.7], geometry: 'cube'},
     ground: { color: [1, 1, 1] },
-    skybox: { color:[1, 0, 0] },
     lanesBorder: { color: [1, 1, 1] },
-    hole: { color: [0.5, 0.5, 0.5], geometry: 'cube' }
+    hole: { color: [0.5, 0.5, 0.5], geometry: 'cube' },
+    sky: { color: [0.5, 0.7, 1], geometry: 'cube' },
   };
   
   // Light configuration
@@ -133,7 +133,8 @@ export class Renderer {
         { name: 'small-barrier', url: '/assets/textures/wood_cartoon.jpg' },
         { name: 'large-barrier', url: '/assets/textures/wood_cartoon.jpg' },
         { name: 'floating-barrier', url: '/assets/textures/wood_cartoon.jpg' },
-        { name: 'hole', url: '/assets/textures/hole.jpg' }
+        { name: 'hole', url: '/assets/textures/hole.jpg' },
+        { name: 'sky', url: '/assets/textures/sky6.jpg' }
       ]);
           } catch (error) {
       console.error('Failed to load textures:', error);
@@ -145,7 +146,7 @@ export class Renderer {
    */
   public updateGroundPosition(delta: number, gameSpeed: number): void {
     // Update texture offset for scrolling ground texture
-    const textureScrollFactor = 0.025;
+    const textureScrollFactor = 0.05;
     this.groundTextureOffset += delta * gameSpeed * textureScrollFactor;
     
     // Reset when too large to avoid floating point precision issues
@@ -219,6 +220,7 @@ export class Renderer {
    */
   public render(player: Player, obstacles: Obstacle[]): void {
     this.beginFrame();
+    this.renderSky();
     this.renderGround();
     this.renderLaneBorders();
     this.renderObstacles(obstacles);
@@ -243,6 +245,25 @@ export class Renderer {
       this.projectionMatrix
     );
   }
+
+    /**
+   * Render the sky background
+   */
+    private renderSky(): void {
+      // Create a large background plane
+      const skyPosition = new Vector3(0, 0, -90); // Far behind everything
+      const skyScale = new Vector3(80, 30, 10);   // Large plane to cover view
+      
+      this.renderEntity({
+        position: skyPosition,
+        scale: skyScale,
+        useTexture: true,
+        textureName: 'sky',
+        rotation: Math.PI,
+        geometry: 'cube',
+        ...this.entityConfigs.sky
+      });
+    }
   
   /**
    * Render the player entity
@@ -301,7 +322,7 @@ export class Renderer {
    */
   private renderGround(): void {
     const groundPosition = new Vector3(0, -1.4, 0);
-    const groundScale = new Vector3(150, 0.4, 200);
+    const groundScale = new Vector3(80, 0.4, 100);
     const textureOffset = [0, this.groundTextureOffset];
     
     this.renderEntity({
