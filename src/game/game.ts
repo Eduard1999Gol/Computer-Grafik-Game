@@ -14,7 +14,8 @@ export class EndlessRunnerGame {
   private shaderProgram: WebGLProgram | null = null;
   
   private lastFrameTime: number = 0;
-  private gameSpeed: number = 1;
+  private gameSpeed: number = 1.0;
+
   private score: number = 0;
   private gameOver: boolean = false;
   private hardDifficulty: boolean = false;
@@ -35,7 +36,7 @@ export class EndlessRunnerGame {
     if (!this.shaderProgram) throw new Error('Failed to create shader program');
     
     // Initialize game components
-    this.renderer = new Renderer(gl, this.shaderProgram);
+    this.renderer = new Renderer(gl, this.shaderProgram, this.getHardDifficulty.bind(this));
     this.player = new Player(this.hardDifficulty);
     this.obstacleManager = new ObstacleManager(this.hardDifficulty);
     
@@ -101,7 +102,7 @@ export class EndlessRunnerGame {
   public start(): void {
     this.gameOver = false;
     this.score = 0;
-    this.gameSpeed = 1;
+    this.gameSpeed = this.hardDifficulty ? 3 : 2;
     this.lastFrameTime = performance.now();
     
     // Reset game components
