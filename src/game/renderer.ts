@@ -133,7 +133,7 @@ export class Renderer {
         { name: 'small-barrier', url: '/assets/textures/wood_cartoon.jpg' },
         { name: 'large-barrier', url: '/assets/textures/wood_cartoon.jpg' },
         { name: 'floating-barrier', url: '/assets/textures/wood_cartoon.jpg' },
-        { name: 'hole', url: '/assets/textures/hole.jpg' },
+        { name: 'hole', url: '/assets/textures/hole2.jpg' },
         { name: 'sky', url: '/assets/textures/sky6.jpg' }
       ]);
           } catch (error) {
