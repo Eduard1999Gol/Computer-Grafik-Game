@@ -74,7 +74,6 @@ export class EndlessRunnerGame {
     });
   }
   
-  // Add callbacks for game events
   public onGameOver(callback: (score: number) => void): void {
     this.onGameOverCallback = callback;
   }
@@ -105,7 +104,6 @@ export class EndlessRunnerGame {
     this.gameSpeed = this.hardDifficulty ? 3 : 2;
     this.lastFrameTime = performance.now();
     
-    // Reset game components
     this.player = new Player(this.hardDifficulty);
     this.obstacleManager = new ObstacleManager(this.hardDifficulty);
     
@@ -153,7 +151,6 @@ export class EndlessRunnerGame {
     if (this.onScoreUpdateCallback) {
       this.onScoreUpdateCallback(Math.floor(this.score));
     }
-    
     // Check for collisions
     if (this.obstacleManager.checkCollision(this.player)) {
       console.log('Collision detected!');
@@ -161,7 +158,6 @@ export class EndlessRunnerGame {
       this.gameOver = true;
       this.soundGameOver.currentTime = 0; // Reset sound to beginning
       this.soundGameOver.play().catch(e => console.error('Error playing game over sound:', e));
-      console.log('Game Over! Final Score:', Math.floor(this.score));
       
       // Notify game over
       if (this.onGameOverCallback) {

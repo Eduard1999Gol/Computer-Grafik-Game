@@ -150,8 +150,6 @@ export class Renderer {
     // Update texture offset for scrolling ground texture
     const textureScrollFactor = 0.05;
     this.groundTextureOffset += delta * gameSpeed * textureScrollFactor;
-    
-    // Reset when too large to avoid floating point precision issues
     if (this.groundTextureOffset > 100) {
       this.groundTextureOffset = 0;
     }
@@ -271,7 +269,9 @@ export class Renderer {
    * Render the player entity
    */
   private renderPlayer(player: Player): void {
+    const playerScale = new Vector3(1.2, 1.2, 1.2);
     this.renderEntity({
+      scale: playerScale,
       position: player.position,
       rotation: player.rotation,
       useTexture: true,
@@ -347,7 +347,7 @@ export class Renderer {
   private renderLaneBorders(): void {
     const laneCount = this.hardDifficulty() ? 5 : 3;
     const laneBorders = getLaneBorderPositions(laneCount);
-    const borderScale = new Vector3(0.1, 0.1, 200);
+    const borderScale = new Vector3(0.05, 0.05, 200);
 
     for (let i = 0; i < laneBorders.length; i++) {
       this.renderEntity({
