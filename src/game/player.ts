@@ -22,7 +22,7 @@ export class Player {
     this.laneCount = hardDifficulty ? 5 : 3;
     
     // Jump sound
-    this.jumpSound = new Audio('/assets/sounds/jump.mp3'); // Adjust path as needed
+    this.jumpSound = new Audio('/assets/sounds/jump.mp3'); 
     this.jumpSound.volume = 0.5; // Adjust volume as needed
 
     // Switch sound 
@@ -68,7 +68,7 @@ export class Player {
     
     // Apply gravity when in the air
     if (this.isJumping || this.position[1] > 0) {
-      this.velocity[1] -= 30.0 * deltaTime; // Increased gravity for better feel
+      this.velocity[1] -= 30.0 * deltaTime; 
       this.position[1] += this.velocity[1] * deltaTime;
       
       // Check if landed
@@ -79,28 +79,27 @@ export class Player {
       }
     }
     
-    // Update lane position (smooth transition)
-    const targetX = (this.lane - Math.floor(this.laneCount / 2)) * 3; // Convert lane to x position (-3, 0, 3) (normal difficulty)
+    const targetX = (this.lane - Math.floor(this.laneCount / 2)) * 3; 
     const previousX = this.position[0];
     this.position[0] += (targetX - this.position[0]) * 10 * deltaTime;
     
-    // Rotate forward based on game speed (simulating rolling)
-    const baseRotationSpeed = 3.0; // Base rotation speed
-    this.rotation -= baseRotationSpeed * gameSpeed * deltaTime;
-    
-    // Also add some sideways rotation when changing lanes
-    const xMovement = this.position[0] - previousX;
-    if (Math.abs(xMovement) > 0.01) {
-      // Add sideways rotation proportional to lane change speed
-      // Note: we use negative value here to make it rotate in the direction of movement
-      this.rotation -= xMovement * 2.0 * deltaTime;
-    }
-    
-    // Keep rotation within 0-2π range
-    if (this.rotation < 0) {
-      this.rotation += Math.PI * 2;
-    } else if (this.rotation > Math.PI * 2) {
-      this.rotation -= Math.PI * 2;
+    // Update rotation when on the ground
+    if (!this.isJumping && this.position[1] <= 0) {
+      const baseRotationSpeed = 3.0; // Base rotation speed
+      this.rotation -= baseRotationSpeed * gameSpeed * deltaTime;
+      
+      // Also add some sideways rotation when changing lanes
+      const xMovement = this.position[0] - previousX;
+      if (Math.abs(xMovement) > 0.01) {
+        this.rotation -= xMovement * 2.0 * deltaTime;
+      }
+      
+      // Keep rotation within 0-2π range
+      if (this.rotation < 0) {
+        this.rotation += Math.PI * 2;
+      } else if (this.rotation > Math.PI * 2) {
+        this.rotation -= Math.PI * 2;
+      }
     }
   }
 
