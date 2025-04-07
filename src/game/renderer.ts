@@ -88,17 +88,15 @@ export class Renderer {
   
   // Ground tracking
   private groundTextureOffset: number = 0;
-
-  private hardDifficulty: () => boolean;
   
   // Default entity configurations
   private readonly entityConfigs: Record<string, EntityConfig> = {
     player: { color: [1, 1, 1.0], geometry: 'sphere' },
     obstacle: { color: [0.7, 0.7, 0.7], geometry: 'cube'},
     ground: { color: [1, 1, 1] },
-    hole: { color: [1, 1, 1], geometry: 'sphere' },
-    sky: { color: [0.5, 0.7, 1], geometry: 'cube' },
     lanesBorder: { color: [1, 1, 1] },
+    hole: { color: [0.5, 0.5, 0.5], geometry: 'cube' },
+    sky: { color: [0.5, 0.7, 1], geometry: 'cube' },
   };
   
   // Light configuration
@@ -113,8 +111,6 @@ export class Renderer {
     this.textureManager = new TextureManager(gl);
     this.projectionMatrix = new Float32Array(16);
     this.viewMatrix = new Float32Array(16);
-
-    this.hardDifficulty = getHardDifficulty;
     
     // Setup rendering pipeline
     this.setupShaderLocations();
@@ -134,8 +130,10 @@ export class Renderer {
       await this.textureManager.loadTextures([
         { name: 'player', url: '/assets/textures/woodplank_ball.png' },
         { name: 'ground', url: '/assets/textures/ground2.jpg' },
-        { name: 'barrier', url: '/assets/textures/bark.jpg' },
-        { name: 'hole', url: '/assets/textures/hole2.jpg' },
+        { name: 'small-barrier', url: '/assets/textures/wood_cartoon.jpg' },
+        { name: 'large-barrier', url: '/assets/textures/wood_cartoon.jpg' },
+        { name: 'floating-barrier', url: '/assets/textures/wood_cartoon.jpg' },
+        { name: 'hole', url: '/assets/textures/hole.jpg' },
         { name: 'sky', url: '/assets/textures/sky6.jpg' }
       ]);
           } catch (error) {
@@ -288,41 +286,34 @@ export class Renderer {
       // Determine the config based on obstacle type
       const obstacleType = obstacle.type === 'hole' ? 'hole' : 'obstacle';
       const config = this.entityConfigs[obstacleType];
+
+      let texture = "";
       
-      if (obstacle.type === 'hole') {
-        // Create a flattened sphere for the hole
-        const holePosition = new Vector3([
-          obstacle.position[0],
-          obstacle.position[1], 
-          obstacle.position[2]
-        ]);
-        
-        // Use the obstacle's size for scale, but make it very flat
-        const holeScale = new Vector3([
-          obstacle.size?.[0] || 1.5,
-          0.1, // Very flat
-          obstacle.size?.[2] || 1.5
-        ]);
-        
-        this.renderEntity({
-          position: holePosition,
-          scale: holeScale,
-          useTexture: true,
-          textureName: 'hole',
-          geometry: 'sphere',
-          ...config
-        });
-      } else {
-        // For barrier obstacles, explicitly set the texture properties
-        this.renderEntity({
-          position: obstacle.position,
-          scale: obstacle.size || obstacle.scale,
-          useTexture: true,
-          textureName: 'barrier',
-          geometry: 'cube',
-          ...config, 
-        });
+      switch (obstacle.type) {
+        case 'small-barrier':
+          texture = "small-barrier";
+          break;
+        case 'large-barrier':
+          texture = "large-barrier";
+          break;
+        case 'floating-barrier':
+          texture = "floating-barrier";
+          break;
+        case 'hole':
+          texture = "hole";
+          break;
+        default:
+          texture = "barrier";
       }
+
+      this.renderEntity({
+        position: obstacle.position,
+        scale: obstacle.size,
+        useTexture: true,
+        textureName: texture,
+        geometry: 'cube',
+        ...config,})
+      
     }
   }
   
@@ -345,7 +336,7 @@ export class Renderer {
   }
 
   private renderLaneBorders(): void {
-    const laneCount = this.hardDifficulty() ? 5 : 3;
+    const laneCount = this.getHardDifficulty() ? 5 : 3;
     const laneBorders = getLaneBorderPositions(laneCount);
     const borderScale = new Vector3(0.05, 0.05, 200);
 

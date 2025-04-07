@@ -102,4 +102,9 @@ export class Player {
       }
     }
   }
+
+  fall(deltaTime: number): void {
+    this.velocity[1] -= 7.5 * deltaTime;
+    this.position[1] += this.velocity[1] * deltaTime;
+  }
 }

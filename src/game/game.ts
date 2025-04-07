@@ -152,9 +152,15 @@ export class EndlessRunnerGame {
       this.onScoreUpdateCallback(Math.floor(this.score));
     }
     // Check for collisions
-    if (this.obstacleManager.checkCollision(this.player)) {
+    const collisionResult = this.obstacleManager.checkCollision(this.player);
+    if (collisionResult[0]) {
       console.log('Collision detected!');
-      
+      if (collisionResult[1]) {
+        for (let i = 0; i < 100; i++) {
+          this.player.fall(deltaTime);
+          this.render();
+        }
+      }
       this.gameOver = true;
       this.soundGameOver.currentTime = 0; // Reset sound to beginning
       this.soundGameOver.play().catch(e => console.error('Error playing game over sound:', e));
