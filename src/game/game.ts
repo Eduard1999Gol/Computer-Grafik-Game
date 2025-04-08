@@ -21,9 +21,12 @@ export class EndlessRunnerGame {
   private hardDifficulty: boolean = false;
   private soundGameOver: HTMLAudioElement = new Audio('/assets/sounds/fail.mp3');
   
+  private paused: boolean = false;
+  
   // Add callbacks for game state changes
   private onGameOverCallback?: (score: number) => void;
   private onScoreUpdateCallback?: (score: number) => void;
+  private onPauseCallback?: (isPaused: boolean) => void;
   
   constructor(private canvas: HTMLCanvasElement) {
     // Initialize WebGL context
@@ -70,6 +73,9 @@ export class EndlessRunnerGame {
         case ' ': // Spacebar
           this.player.jump();
           break;
+        case 'Escape':
+          this.togglePause();
+          break;
       }
     });
   }
@@ -80,6 +86,10 @@ export class EndlessRunnerGame {
   
   public onScoreUpdate(callback: (score: number) => void): void {
     this.onScoreUpdateCallback = callback;
+  }
+  
+  public onPause(callback: (isPaused: boolean) => void): void {
+    this.onPauseCallback = callback;
   }
   
   public getScore(): number {
@@ -96,6 +106,24 @@ export class EndlessRunnerGame {
   
   public isGameOver(): boolean {
     return this.gameOver;
+  }
+  
+  public togglePause(): void {
+    this.paused = !this.paused;
+    
+    if (this.onPauseCallback) {
+      this.onPauseCallback(this.paused);
+    }
+    
+    if (!this.paused) {
+      // Resume the game loop
+      this.lastFrameTime = performance.now();
+      requestAnimationFrame(this.gameLoop.bind(this));
+    }
+  }
+  
+  public isPaused(): boolean {
+    return this.paused;
   }
   
   public start(): void {
@@ -119,7 +147,7 @@ export class EndlessRunnerGame {
     // Clear the canvas (only set the color, actual clearing is done in renderer)
     this.gl.clearColor(0.2, 0.3, 0.8, 1.0);
     
-    if (!this.gameOver) {
+    if (!this.gameOver && !this.paused) {
       // Update game state
       this.update(deltaTime);
       
@@ -128,6 +156,9 @@ export class EndlessRunnerGame {
       
       // Continue game loop
       requestAnimationFrame(this.gameLoop.bind(this));
+    } else if (this.paused) {
+      // Just render the current frame but don't update game state
+      this.render();
     }
   }
   
@@ -187,13 +218,5 @@ export class EndlessRunnerGame {
   
   private render(): void {
     this.renderer.render(this.player, this.obstacleManager.getObstacles());
-  }
-  
-  public resize(): void {
-    // Adjust canvas and viewport when window resizes
-    this.canvas.width = this.canvas.clientWidth;
-    this.canvas.height = this.canvas.clientHeight;
-    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-    this.renderer.updateProjection(this.canvas.width / this.canvas.height);
   }
 }

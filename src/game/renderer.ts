@@ -95,7 +95,7 @@ export class Renderer {
     obstacle: { color: [0.7, 0.7, 0.7], geometry: 'cube'},
     ground: { color: [1, 1, 1] },
     lanesBorder: { color: [1, 1, 1] },
-    hole: { color: [0.5, 0.5, 0.5], geometry: 'cube' },
+    hole: { color: [0.4, 0.4, 0.4], geometry: 'cube' },
     sky: { color: [0.5, 0.7, 1], geometry: 'cube' },
     goldCoin: { color: [0.967, 0.702, 0.019], geometry: 'sphere' },
     redCoin: { color: [0.878, 0.282, 0.275], geometry: 'sphere' }
@@ -136,7 +136,7 @@ export class Renderer {
         { name: 'small-barrier', url: '/assets/textures/crate.jpg' },
         { name: 'large-barrier', url: '/assets/textures/woodplanks_cartoon.jpg' },
         { name: 'floating-barrier', url: '/assets/textures/barrel.jpg' },
-        { name: 'hole', url: '/assets/textures/hole2.jpg' },
+        { name: 'hole', url: '/assets/textures/hole3.png' },
         { name: 'sky', url: '/assets/textures/sky6.jpg' }
       ]);
           } catch (error) {

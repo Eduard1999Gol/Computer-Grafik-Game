@@ -17,12 +17,12 @@ void main() {
     vec3 lightDir = normalize(lightPosition - vPosition);
     
     // Improved lighting calculation with ambient component
-    float ambient = 0.3;
+    float ambient = 0.6;
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = (ambient + diff) * diffuseColor;
     
+    // Scrolling
     if (u_useTexture == 1) {
-        // Apply texture offset for scrolling effect
         vec2 scrolledTexCoord = vTexCoord + u_textureOffset;
         vec4 texColor = texture2D(uTexture, scrolledTexCoord);
         gl_FragColor = vec4(diffuse * texColor.rgb, texColor.a);

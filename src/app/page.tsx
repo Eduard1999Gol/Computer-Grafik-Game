@@ -5,6 +5,7 @@ import React from "react";
 import { RestartGameDialog } from '@/components/restart-game-dialog';
 import GamePanel from '@/components/game-panel';
 import { WelcomeDialog } from '@/components/welcome-dialog';
+import { PauseDialog } from '@/components/pause-dialog';
 
 // Custom hook to handle game logic
 const useEndlessRunnerGame = () => {
@@ -13,6 +14,7 @@ const useEndlessRunnerGame = () => {
   const [score, setScore] = React.useState(0);
   const [gameOver, setGameOver] = React.useState(false);
   const [gameStarted, setGameStarted] = React.useState(false);
+  const [gamePaused, setGamePaused] = React.useState(false);
   const [highScore, setHighScore] = React.useState(0);
   const [hardDifficulty, setHardDifficulty] = React.useState(false);
 
@@ -35,25 +37,16 @@ const useEndlessRunnerGame = () => {
           setGameOver(true);
           setHighScore(prev => Math.max(prev, finalScore));
         });
+        
+        game.current.onPause((isPaused) => {
+          setGamePaused(isPaused);
+        });
       } catch (error) {
         console.error("Failed to initialize game:", error);
       }
     };
 
     initializeGame();
-
-    // Handle resize
-    const handleResize = () => {
-      const canvas = canvasRef.current;
-      if (canvas && game.current) {
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-        game.current.resize();
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const startGame = (hardMode: boolean = false) => {
@@ -63,6 +56,7 @@ const useEndlessRunnerGame = () => {
     }
     
     setGameStarted(true);
+    setGamePaused(false);
     setHardDifficulty(hardMode);
     game.current.setHardDifficulty(hardMode);
     game.current.start();
@@ -75,7 +69,17 @@ const useEndlessRunnerGame = () => {
     }
     
     setGameOver(false);
+    setGamePaused(false);
     game.current.start();
+  };
+
+  const continueGame = () => {
+    if (!game.current) {
+      console.error("Failed loading game");
+      return;
+    }
+    
+    game.current.togglePause();
   };
 
   const toggleDifficulty = () => {
@@ -94,10 +98,12 @@ const useEndlessRunnerGame = () => {
     score,
     gameOver,
     gameStarted,
+    gamePaused,
     highScore,
     hardDifficulty,
     startGame,
     restartGame,
+    continueGame,
     toggleDifficulty
   };
 };
@@ -108,10 +114,12 @@ export default function EndlessRunnerPage() {
     score,
     gameOver,
     gameStarted,
+    gamePaused,
     highScore,
     hardDifficulty,
     startGame,
     restartGame,
+    continueGame,
     toggleDifficulty
   } = useEndlessRunnerGame();
 
@@ -129,6 +137,10 @@ export default function EndlessRunnerPage() {
               changeDifficulty={toggleDifficulty} 
               hardDifficulty={hardDifficulty} 
             />
+          )}
+          
+          {gameStarted && !gameOver && gamePaused && (
+            <PauseDialog onContinue={continueGame} isPaused={gamePaused} />
           )}
           
           {gameStarted && gameOver && (
