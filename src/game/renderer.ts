@@ -95,7 +95,7 @@ export class Renderer {
     obstacle: { color: [0.7, 0.7, 0.7], geometry: 'cube'},
     ground: { color: [1, 1, 1] },
     lanesBorder: { color: [1, 1, 1] },
-    hole: { color: [0.8, 0.8, 0.8], geometry: 'cube' },
+    hole: { color: [0.4, 0.4, 0.4], geometry: 'cube' },
     sky: { color: [0.5, 0.7, 1], geometry: 'cube' },
   };
   
