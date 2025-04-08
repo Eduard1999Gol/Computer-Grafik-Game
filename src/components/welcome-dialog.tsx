@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { ArrowUp, ArrowLeft, ArrowRight } from "lucide-react"
+import { ArrowUp, ArrowLeft, ArrowRight, ArrowDown } from "lucide-react"
 
 interface WelcomeDialogProps {
   onStart: (hardMode: boolean) => void, // Update the type to accept hardMode parameter
@@ -45,6 +45,12 @@ export function WelcomeDialog({ onStart, changeDifficulty, hardDifficulty }: Wel
                   <ArrowUp className="text-white h-4 w-4" />
                 </div>
                 <span className="text-[10px] text-gray-200">JUMP</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="bg-slate-700 p-2 rounded-md mb-1 border border-slate-500">
+                  <ArrowDown className="text-white h-4 w-4" />
+                </div>
+                <span className="text-[10px] text-gray-200">CANCEL JUMP</span>
               </div>
               <div className="flex flex-col items-center">
                 <div className="bg-slate-700 p-2 rounded-md mb-1 border border-slate-500">

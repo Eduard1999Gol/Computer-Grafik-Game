@@ -22,10 +22,10 @@ export class ObstacleManager {
     this.hardDifficulty = hardDifficulty;
 
     this.goldCoinSound = new Audio('/assets/sounds/gold-coin.mp3');
-    this.goldCoinSound.volume = 0.5;
+    this.goldCoinSound.volume = 0.2;
 
     this.redCoinSound = new Audio('/assets/sounds/red-coin.mp3');
-    this.redCoinSound.volume = 0.5;
+    this.redCoinSound.volume = 0.2;
   }
   
   update(deltaTime: number, gameSpeed: number): void {

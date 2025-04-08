@@ -73,6 +73,9 @@ export class EndlessRunnerGame {
         case ' ': // Spacebar
           this.player.jump();
           break;
+        case 'ArrowDown':
+          this.player.cancelJump();
+          break;
         case 'Escape':
           this.togglePause();
           break;
@@ -193,7 +196,7 @@ export class EndlessRunnerGame {
           }
           break;
         case "gold-coin":
-          this.score += 100;
+          this.score += 150;
           if (this.onScoreUpdateCallback) {
             this.onScoreUpdateCallback(Math.floor(this.score));
           }

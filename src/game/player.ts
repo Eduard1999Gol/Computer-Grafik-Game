@@ -23,7 +23,7 @@ export class Player {
     
     // Jump sound
     this.jumpSound = new Audio('/assets/sounds/jump.mp3'); 
-    this.jumpSound.volume = 0.5; // Adjust volume as needed
+    this.jumpSound.volume = 0.2; // Adjust volume as needed
 
     // Switch sound 
     this.switchSound = new Audio('/assets/sounds/switch.mp3');
@@ -98,6 +98,15 @@ export class Player {
       this.rotation += Math.PI * 2;
     } else if (this.rotation > Math.PI * 2) {
       this.rotation -= Math.PI * 2;
+    }
+  }
+
+  cancelJump(): void {
+    if (this.isJumping && this.position[1] > 0) {
+      this.velocity[1] = -20.0;
+      
+      this.switchSound.currentTime = 0; // Reset sound to beginning
+      this.switchSound.play().catch(e => console.error('Error playing jump sound:', e));
     }
   }
 
