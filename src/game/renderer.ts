@@ -21,7 +21,7 @@ export interface Obstacle {
   position: Vector3;
   scale?: Vector3;
   size?: Vector3;
-  type: 'small-barrier' | 'large-barrier' | 'floating-barrier' | 'hole';
+  type: 'small-barrier' | 'large-barrier' | 'floating-barrier' | 'hole' | 'gold-coin' | 'red-coin';
 }
 
 // Uniform locations type
@@ -91,12 +91,14 @@ export class Renderer {
   
   // Default entity configurations
   private readonly entityConfigs: Record<string, EntityConfig> = {
-    player: { color: [1, 1, 1.0], geometry: 'sphere' },
+    player: { color: [1, 1, 1], geometry: 'sphere' },
     obstacle: { color: [0.7, 0.7, 0.7], geometry: 'cube'},
     ground: { color: [1, 1, 1] },
     lanesBorder: { color: [1, 1, 1] },
     hole: { color: [0.5, 0.5, 0.5], geometry: 'cube' },
     sky: { color: [0.5, 0.7, 1], geometry: 'cube' },
+    goldCoin: { color: [0.967, 0.702, 0.019], geometry: 'sphere' },
+    redCoin: { color: [0.878, 0.282, 0.275], geometry: 'sphere' }
   };
   
   // Light configuration
@@ -250,8 +252,8 @@ export class Renderer {
    */
     private renderSky(): void {
       // Create a large background plane
-      const skyPosition = new Vector3(0, 0, -180); // Far behind everything
-      const skyScale = new Vector3(130, 40, 5);   // Large plane to cover view
+      const skyPosition = new Vector3(0, -7, -180); // Far behind everything
+      const skyScale = new Vector3(150, 100, 1);   // Large plane to cover view
       
       this.renderEntity({
         position: skyPosition,
@@ -285,10 +287,23 @@ export class Renderer {
   private renderObstacles(obstacles: Obstacle[]): void {
     for (const obstacle of obstacles) {
       // Determine the config based on obstacle type
-      const obstacleType = obstacle.type === 'hole' ? 'hole' : 'obstacle';
+      //const obstacleType = obstacle.type === 'hole' ? 'hole' : 'obstacle';
+      let obstacleType = 'obstacle';
+      switch (obstacle.type) {
+        case 'hole':
+          obstacleType = "hole";
+          break;
+        case 'gold-coin':
+          obstacleType = "goldCoin";
+          break;
+        case 'red-coin':
+          obstacleType = "redCoin";
+          break;
+      }
       const config = this.entityConfigs[obstacleType];
 
       let texture = "";
+      let useTexture = true;
       
       switch (obstacle.type) {
         case 'small-barrier':
@@ -304,15 +319,16 @@ export class Renderer {
           texture = "hole";
           break;
         default:
+          useTexture = false;
           texture = "barrier";
       }
 
       this.renderEntity({
         position: obstacle.position,
         scale: obstacle.size,
-        useTexture: true,
+        useTexture: useTexture,
         textureName: texture,
-        geometry: 'cube',
+        //geometry: 'cube',
         ...config,})
       
     }

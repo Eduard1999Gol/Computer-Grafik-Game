@@ -27,7 +27,7 @@ export class Player {
 
     // Switch sound 
     this.switchSound = new Audio('/assets/sounds/switch.mp3');
-    this.switchSound.volume = 0.5;
+    this.switchSound.volume = 0.2;
   }
   
   moveLeft(): void {
@@ -83,23 +83,21 @@ export class Player {
     const previousX = this.position[0];
     this.position[0] += (targetX - this.position[0]) * 10 * deltaTime;
     
-    // Update rotation when on the ground
-    if (!this.isJumping && this.position[1] <= 0) {
-      const baseRotationSpeed = 3.0; // Base rotation speed
-      this.rotation -= baseRotationSpeed * gameSpeed * deltaTime;
-      
-      // Also add some sideways rotation when changing lanes
-      const xMovement = this.position[0] - previousX;
-      if (Math.abs(xMovement) > 0.01) {
-        this.rotation -= xMovement * 2.0 * deltaTime;
-      }
-      
-      // Keep rotation within 0-2π range
-      if (this.rotation < 0) {
-        this.rotation += Math.PI * 2;
-      } else if (this.rotation > Math.PI * 2) {
-        this.rotation -= Math.PI * 2;
-      }
+    // Update rotation
+    const baseRotationSpeed = 3.0; // Base rotation speed
+    this.rotation -= baseRotationSpeed * gameSpeed * deltaTime;
+    
+    // Also add some sideways rotation when changing lanes
+    const xMovement = this.position[0] - previousX;
+    if (Math.abs(xMovement) > 0.01) {
+      this.rotation -= xMovement * 2.0 * deltaTime;
+    }
+    
+    // Keep rotation within 0-2π range
+    if (this.rotation < 0) {
+      this.rotation += Math.PI * 2;
+    } else if (this.rotation > Math.PI * 2) {
+      this.rotation -= Math.PI * 2;
     }
   }
 

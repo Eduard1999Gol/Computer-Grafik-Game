@@ -154,12 +154,25 @@ export class EndlessRunnerGame {
     // Check for collisions
     const collisionResult = this.obstacleManager.checkCollision(this.player);
     if (collisionResult[0]) {
-      console.log('Collision detected!');
-      if (collisionResult[1]) {
-        for (let i = 0; i < 100; i++) {
-          this.player.fall(deltaTime);
-          this.render();
-        }
+      switch (collisionResult[1]) {
+        case "hole":
+          while (this.player.position[1] >= -2.5) {
+            this.player.fall(deltaTime);
+            this.render();
+          }
+          break;
+        case "gold-coin":
+          this.score += 100;
+          if (this.onScoreUpdateCallback) {
+            this.onScoreUpdateCallback(Math.floor(this.score));
+          }
+          return;
+        case "red-coin":
+          this.score -= 200;
+          if (this.onScoreUpdateCallback) {
+            this.onScoreUpdateCallback(Math.floor(this.score));
+          }
+          return;
       }
       this.gameOver = true;
       this.soundGameOver.currentTime = 0; // Reset sound to beginning

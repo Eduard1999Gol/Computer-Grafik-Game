@@ -21,7 +21,7 @@ export default function GamePanel( { score, highScore }: GamePanelProps) {
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="bg-slate-800/90 p-3 rounded-lg border border-gray-600">
               <p className="text-gray-300 text-xs mb-1">SCORE</p>
-              <p className="text-white text-xl font-mono font-bold">{score.toString().padStart(5, "0")}</p>
+              <p className="text-white text-xl font-mono font-bold">{score.toString().padStart(5)}</p>
             </div>
             <div className="bg-slate-800/90 p-3 rounded-lg border border-gray-600">
               <p className="text-gray-300 text-xs mb-1">HIGH SCORE</p>
