@@ -250,8 +250,8 @@ export class Renderer {
    */
     private renderSky(): void {
       // Create a large background plane
-      const skyPosition = new Vector3(0, 0, -180); // Far behind everything
-      const skyScale = new Vector3(130, 40, 5);   // Large plane to cover view
+      const skyPosition = new Vector3(0, 0, -180); 
+      const skyScale = new Vector3(140, 40, 5);  
       
       this.renderEntity({
         position: skyPosition,
