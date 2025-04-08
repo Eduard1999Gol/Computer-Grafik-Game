@@ -287,7 +287,6 @@ export class Renderer {
   private renderObstacles(obstacles: Obstacle[]): void {
     for (const obstacle of obstacles) {
       // Determine the config based on obstacle type
-      //const obstacleType = obstacle.type === 'hole' ? 'hole' : 'obstacle';
       let obstacleType = 'obstacle';
       switch (obstacle.type) {
         case 'hole':
@@ -320,7 +319,6 @@ export class Renderer {
           break;
         default:
           useTexture = false;
-          texture = "barrier";
       }
 
       this.renderEntity({
@@ -328,7 +326,6 @@ export class Renderer {
         scale: obstacle.size,
         useTexture: useTexture,
         textureName: texture,
-        //geometry: 'cube',
         ...config,})
       
     }
