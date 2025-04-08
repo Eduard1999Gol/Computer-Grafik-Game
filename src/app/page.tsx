@@ -41,19 +41,6 @@ const useEndlessRunnerGame = () => {
     };
 
     initializeGame();
-
-    // Handle resize
-    const handleResize = () => {
-      const canvas = canvasRef.current;
-      if (canvas && game.current) {
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-        game.current.resize();
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const startGame = (hardMode: boolean = false) => {

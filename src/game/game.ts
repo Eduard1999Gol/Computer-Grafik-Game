@@ -175,12 +175,4 @@ export class EndlessRunnerGame {
   private render(): void {
     this.renderer.render(this.player, this.obstacleManager.getObstacles());
   }
-  
-  public resize(): void {
-    // Adjust canvas and viewport when window resizes
-    this.canvas.width = this.canvas.clientWidth;
-    this.canvas.height = this.canvas.clientHeight;
-    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-    this.renderer.updateProjection(this.canvas.width / this.canvas.height);
-  }
 }
