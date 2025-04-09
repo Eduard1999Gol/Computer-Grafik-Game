@@ -52,7 +52,7 @@ interface RenderOptions {
   useTexture?: boolean;
   textureName?: string;
   textureOffset?: number[];
-  color?: number[]; // Override default color
+  color?: number[];
   geometry?: 'cube' | 'sphere';
 }
 
@@ -109,7 +109,6 @@ export class Renderer {
     private shaderProgram: WebGLProgram,
     private getHardDifficulty: () => boolean
   ) {
-    // Initialize components
     this.textureManager = new TextureManager(gl);
     this.projectionMatrix = new Float32Array(16);
     this.viewMatrix = new Float32Array(16);
@@ -160,14 +159,12 @@ export class Renderer {
    * Set up attribute and uniform locations from shader program
    */
   private setupShaderLocations(): void {
-    // Get attribute locations
     this.attribLocations = {
       position: this.gl.getAttribLocation(this.shaderProgram, 'position'),
       normal: this.gl.getAttribLocation(this.shaderProgram, 'normal'),
       texCoord: this.gl.getAttribLocation(this.shaderProgram, 'texCoord')
     };
     
-    // Get uniform locations
     this.uniformLocations = {
       modelViewMatrix: this.gl.getUniformLocation(this.shaderProgram, 'modelViewMatrix'),
       projectionMatrix: this.gl.getUniformLocation(this.shaderProgram, 'projectionMatrix'),
@@ -184,7 +181,6 @@ export class Renderer {
    * Initialize WebGL render state
    */
   private initializeRenderState(): void {
-    // Enable depth testing
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.depthFunc(this.gl.LESS);
   }
@@ -194,7 +190,7 @@ export class Renderer {
    */
   public updateProjection(aspectRatio: number): void {
     // Set up a perspective projection
-    const fieldOfView = (40 * Math.PI) / 180; // 45 degrees in radians
+    const fieldOfView = (40 * Math.PI) / 180; // 40 degrees in radians
     const near = 0.1;
     const far = 200.0;
     
@@ -212,7 +208,6 @@ export class Renderer {
     const center = [0, 5, 0]; // Look slightly ahead of the player
     const up = [0, 1, 0];     // Up direction
     
-    // Calculate view matrix
     this.viewMatrix = createViewMatrix(eye, center, up);
   }
   
@@ -270,7 +265,7 @@ export class Renderer {
    * Render the player entity
    */
   private renderPlayer(player: Player): void {
-    const playerScale = new Vector3(1.2, 1.2, 1.2);
+    const playerScale = new Vector3(player.size, player.size, player.size);
     this.renderEntity({
       scale: playerScale,
       position: player.position,
@@ -317,7 +312,7 @@ export class Renderer {
         case 'hole':
           texture = "hole";
           break;
-        default:
+        default: // no texture for coins
           useTexture = false;
       }
 

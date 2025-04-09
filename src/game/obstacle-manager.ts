@@ -12,13 +12,11 @@ export class ObstacleManager {
   private obstacles: Obstacle[] = [];
   private spawnDistance: number = 180; // Distance ahead where obstacles spawn
   private spawnTimer: number = 0;
-  private initialSpawnDelay: number = 2.0; // Give player time to get ready
   private hardDifficulty: boolean;
   private goldCoinSound: HTMLAudioElement;
   private redCoinSound: HTMLAudioElement;
   constructor(hardDifficulty: boolean) {
-    // Initial delay before spawning first obstacle
-    this.spawnTimer = 0.0; //this.initialSpawnDelay;
+    this.spawnTimer = 0.0;
     this.hardDifficulty = hardDifficulty;
 
     this.goldCoinSound = new Audio('/assets/sounds/gold-coin.mp3');
@@ -60,7 +58,6 @@ export class ObstacleManager {
   }
   
   private spawnObstacle(): void {
-    // Choose a random lane
     const laneCount = this.hardDifficulty ? 5 : 3
     const lane = Math.floor(Math.random() * laneCount); // random integer from 0 to laneCount - 1
     const xPos = (lane - Math.floor(laneCount / 2)) * 3; // Convert lane to x position, so that middle lane is x = 0 with distance 3 between lanes
@@ -106,7 +103,7 @@ export class ObstacleManager {
     }
 
     let yPos = 0.0;
-    // ground texture begins at -1, player texture goes from height -1 to 1
+    // ground texture begins at -1
     switch(obstacleType) {
       case 'small-barrier':
         yPos = -1 + obstacleSize[1];
@@ -118,14 +115,10 @@ export class ObstacleManager {
         yPos = 2 + obstacleSize[1];
         break;
       case 'hole':
-        yPos = -0.8; // Position holes slightly 0.2 above the ground texture
+        yPos = -0.8; // Position holes slightly (0.2) above the ground texture
         break;
-      case 'gold-coin':
+      default:
         yPos = -0.5 + obstacleSize[1] + Math.random() * 2.5;
-        break;
-      case 'red-coin':
-        yPos = -0.5 + obstacleSize[1] + Math.random() * 2.5;
-        break;
     }
     
     this.obstacles.push({
@@ -141,13 +134,10 @@ export class ObstacleManager {
   }
 
   checkCollision(player: Player): [boolean, String] {
-    // boundaries for player texture
-    const playerBounds = getBounds(player.position, new Vector3(1, 1, 1));
-
     for (const obstacle of this.obstacles) {
       // boundaries for obstacle texture
       const obstacleBounds = getBounds(obstacle.position, obstacle.size);
-      const collisionDistance = (obstacle.type == "hole") ? 0.79 : 1;
+      const collisionDistance = (obstacle.type == "hole") ? 0.79 : player.size;
       if (sphereIntersectsCube(
         player.position,
         collisionDistance,
@@ -192,7 +182,7 @@ const sphereIntersectsCube = (
   cubePosBounds: [number, number, number]
 ): boolean => {
   // squared euclidian distance from sphere center to cube
-  // usage of squared distance to avoid usage of Math.sqrt
+  // using squared distance to avoid using Math.sqrt
   let distanceSquared = 0;
 
   for (let i = 0; i < 3; i++) {

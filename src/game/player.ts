@@ -1,9 +1,11 @@
 import { Vector3 } from '@math.gl/core';
+import { Vector } from '@math.gl/core/dist/classes/base/vector';
 
 export class Player {
   position: Vector3;
   velocity: Vector3;
-  lane: number; // 0 = left, 1 = center, 2 = right
+  size: number;
+  lane: number; // 0 = most left, laneCount - 1 = most right
   laneCount: number;
   isJumping: boolean;
   jumpCooldown: number = 0;
@@ -14,8 +16,9 @@ export class Player {
   
   
   constructor(hardDifficulty: boolean) {
-    this.position = new Vector3([0, 0, 0]);
-    this.velocity = new Vector3([0, 0, 0]);
+    this.position = new Vector3(0, 0, 0);
+    this.velocity = new Vector3(0, 0, 0);
+    this.size = 1.1;
     this.lane = hardDifficulty ? 2 : 1; // Start in center lane
     this.isJumping = false;
     this.hardDifficulty = hardDifficulty;
@@ -48,20 +51,17 @@ export class Player {
   }
   
   jump(): void {
-    // Only allow jump if player is on the ground and cooldown is over
     if (!this.isJumping && this.jumpCooldown <= 0) {
-      this.velocity[1] = 15.0; // Jump velocity - increased for better feel
+      this.velocity[1] = 15.0;
       this.isJumping = true;
       this.jumpCooldown = 0.1; // Small cooldown to prevent double jumps
       
-      // Play jump sound
       this.jumpSound.currentTime = 0; // Reset sound to beginning
       this.jumpSound.play().catch(e => console.error('Error playing jump sound:', e));
     }
   }
   
-  update(deltaTime: number, gameSpeed: number = 1): void {
-    // Decrease jump cooldown
+  update(deltaTime: number, gameSpeed: number): void {
     if (this.jumpCooldown > 0) {
       this.jumpCooldown -= deltaTime;
     }
@@ -83,11 +83,10 @@ export class Player {
     const previousX = this.position[0];
     this.position[0] += (targetX - this.position[0]) * 10 * deltaTime;
     
-    // Update rotation
-    const baseRotationSpeed = 3.0; // Base rotation speed
+    const baseRotationSpeed = 3.0;
     this.rotation -= baseRotationSpeed * gameSpeed * deltaTime;
     
-    // Also add some sideways rotation when changing lanes
+    // sideways rotation when changing lanes
     const xMovement = this.position[0] - previousX;
     if (Math.abs(xMovement) > 0.01) {
       this.rotation -= xMovement * 2.0 * deltaTime;

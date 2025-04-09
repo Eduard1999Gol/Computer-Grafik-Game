@@ -166,26 +166,19 @@ export class EndlessRunnerGame {
   }
   
   private update(deltaTime: number): void {
-    // Update player with game speed
     this.player.update(deltaTime, this.gameSpeed);
-    
-    // Update obstacles
     this.obstacleManager.update(deltaTime, this.gameSpeed);
     
     // Update ground position for scrolling effect
     this.renderer.updateGroundPosition(deltaTime, this.gameSpeed);
     
-    // Increase difficulty over time
     this.gameSpeed += deltaTime * (this.hardDifficulty ? 0.05 : 0.01);
-    
-    // Increment score
     this.score += deltaTime * 10 * this.gameSpeed;
     
-    // Notify score update
     if (this.onScoreUpdateCallback) {
       this.onScoreUpdateCallback(Math.floor(this.score));
     }
-    // Check for collisions
+
     const collisionResult = this.obstacleManager.checkCollision(this.player);
     if (collisionResult[0]) {
       switch (collisionResult[1]) {
@@ -212,7 +205,6 @@ export class EndlessRunnerGame {
       this.soundGameOver.currentTime = 0; // Reset sound to beginning
       this.soundGameOver.play().catch(e => console.error('Error playing game over sound:', e));
       
-      // Notify game over
       if (this.onGameOverCallback) {
         this.onGameOverCallback(Math.floor(this.score));
       }

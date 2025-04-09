@@ -88,26 +88,18 @@ export function createModelViewMatrix(
   viewMatrix: Float32Array, 
   position: { x: number, y: number, z: number },
   scale?: { x: number, y: number, z: number },
-  rotation?: number // Add rotation parameter
+  rotation?: number
 ): Float32Array {
   const modelViewMatrix = mat4.create();
   
-  // Start with view matrix
   mat4.copy(modelViewMatrix, viewMatrix);
   
-  // Apply translation
   mat4.translate(modelViewMatrix, modelViewMatrix, [position.x, position.y, position.z]);
   
-  // Apply rotation if provided
   if (rotation !== undefined) {
-    // Rotate around X axis
     mat4.rotateX(modelViewMatrix, modelViewMatrix, rotation);
-    // You can add more rotation axes if needed
-    // mat4.rotateY(modelViewMatrix, modelViewMatrix, rotation);
-    // mat4.rotateZ(modelViewMatrix, modelViewMatrix, rotation);
   }
   
-  // Apply scaling if provided
   if (scale) {
     mat4.scale(modelViewMatrix, modelViewMatrix, [scale.x, scale.y, scale.z]);
   }

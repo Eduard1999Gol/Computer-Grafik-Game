@@ -21,34 +21,23 @@ export interface AttributeLocations {
  * Create cube geometry and return buffer objects
  */
 export function createCubeGeometry(gl: WebGL2RenderingContext): GeometryBuffers {
-  // Define cube vertices (positions)
   const vertices = cube_vertices;
-  
-  // Define normals for lighting
   const normals = cube_normals;
-  
-  // Define texture coordinates
   const texCoords = cube_texCoords;
-  
-  // Define indices for the cube
   const indices = cube_indices;
 
-  // Create and bind vertex buffer
   const vertexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
   
-  // Create and bind normal buffer
   const normalBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
   
-  // Create and bind texture coordinate buffer
   const texCoordBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
   
-  // Create and bind index buffer
   const indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
@@ -66,28 +55,23 @@ export function createCubeGeometry(gl: WebGL2RenderingContext): GeometryBuffers 
  * Create sphere geometry and return buffer objects
  */
 export function createSphereGeometry(gl: WebGL2RenderingContext): GeometryBuffers {
-  // Use the sphere data
   const vertices = sphere_vertices;
   const normals = sphere_normals;
   const texCoords = sphere_texCoords;
   const indices = sphere_indices;
 
-  // Create and bind vertex buffer
   const vertexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
   
-  // Create and bind normal buffer
   const normalBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
   
-  // Create and bind texture coordinate buffer
   const texCoordBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
   
-  // Create and bind index buffer
   const indexBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
