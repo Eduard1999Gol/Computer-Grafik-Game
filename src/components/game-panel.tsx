@@ -7,10 +7,11 @@ import { ArrowUp, ArrowLeft, ArrowRight, ArrowDown } from "lucide-react"
 interface GamePanelProps {
   score: number
   highScore: number
+  lives: number
 }
 
 
-export default function GamePanel( { score, highScore }: GamePanelProps) {
+export default function GamePanel( { score, highScore, lives }: GamePanelProps) {
 
   return (
       <Card className="w-full max-w-md bg-gray-700/90 border-2 border-gray-400 rounded-xl shadow-lg scale-70">
@@ -18,7 +19,7 @@ export default function GamePanel( { score, highScore }: GamePanelProps) {
           <h1 className="text-2xl font-bold text-gray-200 tracking-wider mb-1">ENDLESS RUNNER</h1>
           <div className="h-0.5 bg-gray-400 rounded-full mb-3"></div>
 
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="bg-slate-800/90 p-3 rounded-lg border border-gray-600">
               <p className="text-gray-300 text-xs mb-1">SCORE</p>
               <p className="text-white text-xl font-mono font-bold">{score.toString().padStart(5)}</p>
@@ -26,6 +27,10 @@ export default function GamePanel( { score, highScore }: GamePanelProps) {
             <div className="bg-slate-800/90 p-3 rounded-lg border border-gray-600">
               <p className="text-gray-300 text-xs mb-1">HIGH SCORE</p>
               <p className="text-white text-xl font-mono font-bold">{highScore.toString().padStart(5, "0")}</p>
+            </div>
+            <div className="bg-slate-800/90 p-3 rounded-lg border border-gray-600">
+              <p className="text-gray-300 text-xs mb-1">LIVES</p>
+              <p className="text-white text-xl font-mono font-bold">{lives.toString().padStart(5)}</p>
             </div>
           </div>
 

@@ -5,7 +5,7 @@ interface Obstacle {
   position: Vector3;
   size: Vector3;
   lane: number;
-  type: 'small-barrier' | 'large-barrier' | 'floating-barrier' | 'hole' | 'gold-coin' | 'red-coin';
+  type: 'small-barrier' | 'large-barrier' | 'floating-barrier' | 'hole' | 'gold-coin' | 'red-coin' | 'life';
 }
 
 export class ObstacleManager {
@@ -15,15 +15,25 @@ export class ObstacleManager {
   private hardDifficulty: boolean;
   private goldCoinSound: HTMLAudioElement;
   private redCoinSound: HTMLAudioElement;
-  constructor(hardDifficulty: boolean) {
+  private lifeSound: HTMLAudioElement;
+  private obstacleBreakSound: HTMLAudioElement;
+  private getLives: () => number;
+  constructor(hardDifficulty: boolean, getLives: () => number) {
     this.spawnTimer = 0.0;
     this.hardDifficulty = hardDifficulty;
+    this.getLives = getLives;
 
     this.goldCoinSound = new Audio('/assets/sounds/gold-coin.mp3');
     this.goldCoinSound.volume = 0.2;
 
     this.redCoinSound = new Audio('/assets/sounds/red-coin.mp3');
     this.redCoinSound.volume = 0.2;
+
+    this.lifeSound = new Audio('/assets/sounds/life.mp3');
+    this.lifeSound.volume = 0.2;
+
+    this.obstacleBreakSound = new Audio('/assets/sounds/obstacle-break.mp3');
+    this.obstacleBreakSound.volume = 0.2;
   }
   
   update(deltaTime: number, gameSpeed: number): void {
@@ -76,8 +86,10 @@ export class ObstacleManager {
       obstacleType = 'hole';
     }
     else {
-      if (Math.random() >= 0.5) obstacleType = "gold-coin";
-      else obstacleType = "red-coin";
+      const coinType = Math.random();
+      if (coinType >= 0.6) obstacleType = "gold-coin";
+      else if (coinType < 0.6 && coinType >= 0.1) obstacleType = "red-coin";
+      else obstacleType = "life";
     }
 
     let obstacleSize = new Vector3(1, 1, 1);
@@ -100,6 +112,8 @@ export class ObstacleManager {
       case 'red-coin':
         obstacleSize = new Vector3(0.7, 0.7, 0.2);
         break;
+      case 'life':
+        obstacleSize = new Vector3(0.2, 0.55, 0.2);  
     }
 
     let yPos = 0.0;
@@ -153,6 +167,16 @@ export class ObstacleManager {
           obstacle.position[1] = -3;
           this.redCoinSound.currentTime = 0;
           this.redCoinSound.play().catch(e => console.error('Error playing red coin sound:', e));
+        }
+        else if (obstacle.type == "life") {
+          obstacle.position[1] = -3;
+          this.lifeSound.currentTime = 0;
+          this.lifeSound.play().catch(e => console.error('Error playing life sound:', e));
+        }
+        else if (this.getLives() > 1) {
+          obstacle.position[1] = -5;
+          this.obstacleBreakSound.currentTime = 0;
+          this.obstacleBreakSound.play().catch(e => console.error('Error playing obstacle break sound:', e));
         }
         return [true, obstacle.type];
       }

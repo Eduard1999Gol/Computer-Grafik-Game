@@ -17,6 +17,7 @@ export class EndlessRunnerGame {
   private gameSpeed: number = 1.0;
 
   private score: number = 0;
+  private lives: number = 1;
   private gameOver: boolean = false;
   private hardDifficulty: boolean = false;
   private soundGameOver: HTMLAudioElement = new Audio('/assets/sounds/fail.mp3');
@@ -27,6 +28,7 @@ export class EndlessRunnerGame {
   private onGameOverCallback?: (score: number) => void;
   private onScoreUpdateCallback?: (score: number) => void;
   private onPauseCallback?: (isPaused: boolean) => void;
+  private onLivesUpdateCallback?: (lives: number) => void;
   
   constructor(private canvas: HTMLCanvasElement) {
     // Initialize WebGL context
@@ -41,7 +43,7 @@ export class EndlessRunnerGame {
     // Initialize game components
     this.renderer = new Renderer(gl, this.shaderProgram, this.getHardDifficulty.bind(this));
     this.player = new Player(this.hardDifficulty);
-    this.obstacleManager = new ObstacleManager(this.hardDifficulty);
+    this.obstacleManager = new ObstacleManager(this.hardDifficulty, this.getLives.bind(this));
     
     // Set up event listeners
     this.setupControls();
@@ -94,6 +96,10 @@ export class EndlessRunnerGame {
   public onPause(callback: (isPaused: boolean) => void): void {
     this.onPauseCallback = callback;
   }
+
+  public onLivesUpdate(callback: (lives: number) => void): void {
+    this.onLivesUpdateCallback = callback;
+  }
   
   public getScore(): number {
     return Math.floor(this.score);
@@ -105,6 +111,10 @@ export class EndlessRunnerGame {
 
   public setHardDifficulty(hard: boolean) {
     this.hardDifficulty = hard;
+  }
+
+  public getLives(): number {
+    return this.lives;
   }
   
   public isGameOver(): boolean {
@@ -132,11 +142,12 @@ export class EndlessRunnerGame {
   public start(): void {
     this.gameOver = false;
     this.score = 0;
+    this.lives = 1;
     this.gameSpeed = this.hardDifficulty ? 3 : 2;
     this.lastFrameTime = performance.now();
     
     this.player = new Player(this.hardDifficulty);
-    this.obstacleManager = new ObstacleManager(this.hardDifficulty);
+    this.obstacleManager = new ObstacleManager(this.hardDifficulty, this.getLives.bind(this));
     
     // Start game loop
     requestAnimationFrame(this.gameLoop.bind(this));
@@ -182,12 +193,6 @@ export class EndlessRunnerGame {
     const collisionResult = this.obstacleManager.checkCollision(this.player);
     if (collisionResult[0]) {
       switch (collisionResult[1]) {
-        case "hole":
-          while (this.player.position[1] >= -2.5) {
-            this.player.fall(deltaTime);
-            this.render();
-          }
-          break;
         case "gold-coin":
           this.score *= 1.1;
           if (this.onScoreUpdateCallback) {
@@ -200,7 +205,29 @@ export class EndlessRunnerGame {
             this.onScoreUpdateCallback(Math.floor(this.score));
           }
           return;
+        case "life":
+          this.lives += 1;
+          if (this.onLivesUpdateCallback) {
+            this.onLivesUpdateCallback(this.lives);
+          }
+          return;
+        default:
+          this.lives -= 1;
       }
+
+      if (this.onLivesUpdateCallback) {
+        this.onLivesUpdateCallback(this.lives);
+      }
+
+      if (this.lives > 0) return;
+
+      if (collisionResult[1] == "hole") {
+        while (this.player.position[1] >= -2.5) {
+          this.player.fall(deltaTime);
+          this.render();
+        }
+      }
+      console.log("lives:", this.lives);
       this.gameOver = true;
       this.soundGameOver.currentTime = 0; // Reset sound to beginning
       this.soundGameOver.play().catch(e => console.error('Error playing game over sound:', e));
