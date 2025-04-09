@@ -15,6 +15,8 @@ export class ObstacleManager {
   private hardDifficulty: boolean;
   private goldCoinSound: HTMLAudioElement;
   private redCoinSound: HTMLAudioElement;
+  private lifeSound: HTMLAudioElement;
+  private obstacleBreakSound: HTMLAudioElement;
   private getLives: () => number;
   constructor(hardDifficulty: boolean, getLives: () => number) {
     this.spawnTimer = 0.0;
@@ -26,6 +28,12 @@ export class ObstacleManager {
 
     this.redCoinSound = new Audio('/assets/sounds/red-coin.mp3');
     this.redCoinSound.volume = 0.2;
+
+    this.lifeSound = new Audio('/assets/sounds/life.mp3');
+    this.lifeSound.volume = 0.2;
+
+    this.obstacleBreakSound = new Audio('/assets/sounds/obstacle-break.mp3');
+    this.obstacleBreakSound.volume = 0.2;
   }
   
   update(deltaTime: number, gameSpeed: number): void {
@@ -162,11 +170,13 @@ export class ObstacleManager {
         }
         else if (obstacle.type == "life") {
           obstacle.position[1] = -3;
-          // TODO: ADD SOUND
+          this.lifeSound.currentTime = 0;
+          this.lifeSound.play().catch(e => console.error('Error playing life sound:', e));
         }
         else if (this.getLives() > 1) {
           obstacle.position[1] = -5;
-          // TODO: ADD obstacle breaking sound
+          this.obstacleBreakSound.currentTime = 0;
+          this.obstacleBreakSound.play().catch(e => console.error('Error playing obstacle break sound:', e));
         }
         return [true, obstacle.type];
       }
