@@ -196,13 +196,13 @@ export class EndlessRunnerGame {
           }
           break;
         case "gold-coin":
-          this.score += 150;
+          this.score *= 1.1;
           if (this.onScoreUpdateCallback) {
             this.onScoreUpdateCallback(Math.floor(this.score));
           }
           return;
         case "red-coin":
-          this.score -= 200;
+          this.score *= 0.85;
           if (this.onScoreUpdateCallback) {
             this.onScoreUpdateCallback(Math.floor(this.score));
           }
