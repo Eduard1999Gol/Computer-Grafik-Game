@@ -17,6 +17,7 @@ const useEndlessRunnerGame = () => {
   const [gamePaused, setGamePaused] = React.useState(false);
   const [highScore, setHighScore] = React.useState(0);
   const [hardDifficulty, setHardDifficulty] = React.useState(false);
+  const [lives, setLives] = React.useState(1);
 
   React.useEffect(() => {
     const initializeGame = async () => {
@@ -32,6 +33,7 @@ const useEndlessRunnerGame = () => {
         
         // Set up game callbacks
         game.current.onScoreUpdate(setScore);
+        game.current.onLivesUpdate(setLives);
         
         game.current.onGameOver((finalScore) => {
           setGameOver(true);
@@ -78,7 +80,7 @@ const useEndlessRunnerGame = () => {
       console.error("Failed loading game");
       return;
     }
-    
+    setLives(1);
     setGameOver(false);
     setGamePaused(false);
     game.current.start();
@@ -107,6 +109,7 @@ const useEndlessRunnerGame = () => {
   return {
     canvasRef,
     score,
+    lives,
     gameOver,
     gameStarted,
     gamePaused,
@@ -123,6 +126,7 @@ export default function EndlessRunnerPage() {
   const {
     canvasRef,
     score,
+    lives,
     gameOver,
     gameStarted,
     gamePaused,
@@ -139,7 +143,7 @@ export default function EndlessRunnerPage() {
       <canvas className="absolute inset-0 h-full w-full" ref={canvasRef} />
   
       <div className="absolute top-0 w-full">
-        {gameStarted && <GamePanel score={score} highScore={highScore}/>}
+        {gameStarted && <GamePanel score={score} highScore={highScore} lives={lives}/>}
         
         <div className="flex w-full flex-col items-center mt-4">
           {!gameStarted && (

@@ -21,7 +21,7 @@ export interface Obstacle {
   position: Vector3;
   scale?: Vector3;
   size?: Vector3;
-  type: 'small-barrier' | 'large-barrier' | 'floating-barrier' | 'hole' | 'gold-coin' | 'red-coin';
+  type: 'small-barrier' | 'large-barrier' | 'floating-barrier' | 'hole' | 'gold-coin' | 'red-coin' | 'life';
 }
 
 // Uniform locations type
@@ -98,7 +98,8 @@ export class Renderer {
     hole: { color: [0.4, 0.4, 0.4], geometry: 'cube' },
     sky: { color: [0.5, 0.7, 1], geometry: 'cube' },
     goldCoin: { color: [0.967, 0.702, 0.019], geometry: 'sphere' },
-    redCoin: { color: [0.878, 0.282, 0.275], geometry: 'sphere' }
+    redCoin: { color: [0.878, 0.282, 0.275], geometry: 'sphere' },
+    life: { color: [0, 1, 0], geometry: 'sphere' }
   };
   
   // Light configuration
@@ -292,6 +293,9 @@ export class Renderer {
           break;
         case 'red-coin':
           obstacleType = "redCoin";
+          break;
+        case 'life':
+          obstacleType = "life";
           break;
       }
       const config = this.entityConfigs[obstacleType];
