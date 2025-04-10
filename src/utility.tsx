@@ -1,4 +1,5 @@
 import React from 'react';
+import { mat3, mat4 } from 'gl-matrix';
 
 /**
  * Creates a force update hook for React components
@@ -16,36 +17,30 @@ export function useForceUpdate() {
  * @param modelViewMatrix The model-view matrix
  * @returns The normal matrix as a Float32Array
  */
+
 export function normalMatrix(modelViewMatrix: Float32Array): Float32Array {
-  // Create a new matrix for the normal transformation
-  const normalMat = new Float32Array(16);
-  
-  // Implementation of matrix inverse:
-  // This is a simplified version that assumes the upper-left 3x3 portion
-  // of the modelViewMatrix only contains rotation/scale (no skew)
-  
-  // Copy the upper-left 3x3 portion of modelViewMatrix
-  normalMat[0] = modelViewMatrix[0];
-  normalMat[1] = modelViewMatrix[1];
-  normalMat[2] = modelViewMatrix[2];
-  normalMat[4] = modelViewMatrix[4];
-  normalMat[5] = modelViewMatrix[5];
-  normalMat[6] = modelViewMatrix[6];
-  normalMat[8] = modelViewMatrix[8];
-  normalMat[9] = modelViewMatrix[9];
-  normalMat[10] = modelViewMatrix[10];
-  
-  // Set to identity for the rest
-  normalMat[3] = 0;
-  normalMat[7] = 0;
-  normalMat[11] = 0;
-  normalMat[12] = 0;
-  normalMat[13] = 0;
-  normalMat[14] = 0;
-  normalMat[15] = 1;
-  
-  // For a proper implementation, this would involve transposing the inverse
-  // of the modelViewMatrix, but we're simplifying here
-  
-  return normalMat;
+  const normalMat3 = mat3.create();
+
+  // upper 3x3 part of modelViewMatrix
+  mat3.fromMat4(normalMat3, modelViewMatrix);
+
+  mat3.invert(normalMat3, normalMat3);
+  mat3.transpose(normalMat3, normalMat3);
+
+  const normalMat4 = new Float32Array(16);
+  normalMat4[0] = normalMat3[0];
+  normalMat4[1] = normalMat3[1];
+  normalMat4[2] = normalMat3[2];
+
+  normalMat4[4] = normalMat3[3];
+  normalMat4[5] = normalMat3[4];
+  normalMat4[6] = normalMat3[5];
+
+  normalMat4[8] = normalMat3[6];
+  normalMat4[9] = normalMat3[7];
+  normalMat4[10] = normalMat3[8];
+
+  normalMat4[15] = 1;
+
+  return normalMat4;
 }

@@ -122,6 +122,7 @@ export class Renderer {
     
     // Set initial projection matrix
     this.updateProjection(this.gl.canvas.width / this.gl.canvas.height);
+    this.updateViewMatrix();
   }
   
   /**
@@ -197,7 +198,7 @@ export class Renderer {
     
     // Calculate perspective projection matrix
     this.projectionMatrix = createPerspectiveMatrix(fieldOfView, aspectRatio, near, far);
-    this.updateViewMatrix();
+    //this.updateViewMatrix();
   }
   
   /**
