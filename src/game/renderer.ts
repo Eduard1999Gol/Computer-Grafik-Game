@@ -8,11 +8,9 @@ import {
 } from '@/lib/matrix-utils';
 import { TextureManager } from '@/lib/texture-manager';
 import { 
-  drawCube, 
-  drawSphere, 
-  createCubeGeometry, 
-  createSphereGeometry, 
-  GeometryBuffers, 
+  drawGeometry,
+  GeometryVAO,
+  createGeometry,
   AttributeLocations 
 } from '../lib/renderer-draw-utils';
 
@@ -76,8 +74,10 @@ export class Renderer {
   };
   
   // Geometry buffers
-  private cubeGeometry: GeometryBuffers;
-  private sphereGeometry: GeometryBuffers;
+  //private cubeGeometry: GeometryBuffers;
+  //private sphereGeometry: GeometryBuffers;
+  private cubeGeometry: GeometryVAO;
+  private sphereGeometry: GeometryVAO;
   
   // Matrices
   private projectionMatrix: Float32Array;
@@ -116,8 +116,8 @@ export class Renderer {
     
     // Setup rendering pipeline
     this.setupShaderLocations();
-    this.cubeGeometry = createCubeGeometry(this.gl);
-    this.sphereGeometry = createSphereGeometry(this.gl);
+    this.cubeGeometry = createGeometry(this.gl, this.attribLocations, false);
+    this.sphereGeometry = createGeometry(this.gl, this.attribLocations, true);
     this.initializeRenderState();
     
     // Set initial projection matrix
@@ -198,7 +198,6 @@ export class Renderer {
     
     // Calculate perspective projection matrix
     this.projectionMatrix = createPerspectiveMatrix(fieldOfView, aspectRatio, near, far);
-    //this.updateViewMatrix();
   }
   
   /**
@@ -424,26 +423,18 @@ export class Renderer {
     );
     
     // Set model-view matrix uniform
-    this.gl.uniformMatrix4fv(
-      this.uniformLocations.modelViewMatrix,
-      false,
-      modelViewMatrix
-    );
+    this.gl.uniformMatrix4fv(this.uniformLocations.modelViewMatrix, false, modelViewMatrix);
     
     // Calculate and set normal matrix
     const nMatrix = normalMatrix(modelViewMatrix);
-    this.gl.uniformMatrix4fv(
-      this.uniformLocations.normalMatrix,
-      false,
-      nMatrix
-    );
+    this.gl.uniformMatrix4fv(this.uniformLocations.normalMatrix, false, nMatrix);
     
     // Draw with appropriate geometry
     const geometry = options.geometry || 'cube';
     if (geometry === 'sphere') {
-      drawSphere(this.gl, this.sphereGeometry, this.attribLocations);
+      drawGeometry(this.gl, this.sphereGeometry);
     } else {
-      drawCube(this.gl, this.cubeGeometry, this.attribLocations);
+      drawGeometry(this.gl, this.cubeGeometry);
     }
   }
 }
