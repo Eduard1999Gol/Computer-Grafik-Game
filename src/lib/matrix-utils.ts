@@ -1,5 +1,4 @@
-import { mat4 } from 'gl-matrix';
-
+import { mat3, mat4 } from 'gl-matrix';
 /**
  * Matrix utility functions for 3D graphics
  */
@@ -107,6 +106,41 @@ export function createModelViewMatrix(
   return modelViewMatrix as Float32Array;
 }
 
+
+
+/**
+ * Calculates the normal matrix from a model-view matrix
+ * @param modelViewMatrix The model-view matrix
+ * @returns The normal matrix as a Float32Array
+ */
+
+export function normalMatrix(modelViewMatrix: Float32Array): Float32Array {
+  const normalMat3 = mat3.create();
+
+  // upper 3x3 part of modelViewMatrix
+  mat3.fromMat4(normalMat3, modelViewMatrix);
+
+  mat3.invert(normalMat3, normalMat3);
+  mat3.transpose(normalMat3, normalMat3);
+
+  const normalMat4 = new Float32Array(16);
+  normalMat4[0] = normalMat3[0];
+  normalMat4[1] = normalMat3[1];
+  normalMat4[2] = normalMat3[2];
+
+  normalMat4[4] = normalMat3[3];
+  normalMat4[5] = normalMat3[4];
+  normalMat4[6] = normalMat3[5];
+
+  normalMat4[8] = normalMat3[6];
+  normalMat4[9] = normalMat3[7];
+  normalMat4[10] = normalMat3[8];
+
+  normalMat4[15] = 1;
+
+  return normalMat4;
+}
+
 // Vector helper methods
 export function normalizeVector(v: number[]): number[] {
   const length = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
@@ -131,3 +165,4 @@ export function crossVectors(a: number[], b: number[]): number[] {
 export function dotVectors(a: number[], b: number[]): number {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
+

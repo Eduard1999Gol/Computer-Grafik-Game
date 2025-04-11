@@ -1,11 +1,13 @@
 import { Vector3 } from '@math.gl/core';
 import { Player } from './player';
 
-interface Obstacle {
+type ObstacleType = 'small-barrier' | 'large-barrier' | 'floating-barrier' | 'hole' | 'gold-coin' | 'red-coin' | 'life';
+
+export interface Obstacle {
   position: Vector3;
   size: Vector3;
   lane: number;
-  type: 'small-barrier' | 'large-barrier' | 'floating-barrier' | 'hole' | 'gold-coin' | 'red-coin' | 'life';
+  type: ObstacleType;
 }
 
 export class ObstacleManager {
@@ -18,6 +20,7 @@ export class ObstacleManager {
   private lifeSound: HTMLAudioElement;
   private obstacleBreakSound: HTMLAudioElement;
   private getLives: () => number;
+  
   constructor(hardDifficulty: boolean, getLives: () => number) {
     this.spawnTimer = 0.0;
     this.hardDifficulty = hardDifficulty;
@@ -42,19 +45,9 @@ export class ObstacleManager {
       const obstacle = this.obstacles[i];
       obstacle.position[2] += deltaTime * 10 * gameSpeed;
       
-      // Remove obstacles that are behind the player
-      switch (obstacle.type) {
-        case 'hole':
-          if (obstacle.position[2] > 7) this.obstacles.splice(i, 1);
-          break;
-        case 'large-barrier':
-          if (obstacle.position[2] > 13) this.obstacles.splice(i, 1);
-          break;
-        case 'floating-barrier':
-          if (obstacle.position[2] > 12.5) this.obstacles.splice(i, 1);
-          break;
-        default:
-          if (obstacle.position[2] > 8.5) this.obstacles.splice(i, 1);
+      // Remove all obstacles that are behind the player (z > 13)
+      if (obstacle.position[2] > 13) {
+        this.obstacles.splice(i, 1);
       }
     }
     
@@ -62,7 +55,6 @@ export class ObstacleManager {
     this.spawnTimer -= deltaTime * gameSpeed;
     if (this.spawnTimer <= 0) {
       this.spawnObstacle();
-      // Adjust spawn rate based on speed (faster game = more frequent obstacles)
       this.spawnTimer = (1.5 / gameSpeed) + Math.random() * 0.5; 
     }
   }

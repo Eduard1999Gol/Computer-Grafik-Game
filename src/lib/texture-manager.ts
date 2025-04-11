@@ -46,26 +46,4 @@ export class TextureManager {
     );
     await Promise.all(promises);
   }
-  
-  /**
-   * Delete a texture and remove it from the manager
-   * @param name Texture identifier
-   */
-  deleteTexture(name: string): void {
-    const texture = this.textures.get(name);
-    if (texture) {
-      this.gl.deleteTexture(texture);
-      this.textures.delete(name);
-    }
-  }
-  
-  /**
-   * Clean up all textures
-   */
-  dispose(): void {
-    this.textures.forEach(texture => {
-      this.gl.deleteTexture(texture);
-    });
-    this.textures.clear();
-  }
 }

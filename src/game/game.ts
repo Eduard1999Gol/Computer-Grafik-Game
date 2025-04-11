@@ -158,9 +158,6 @@ export class EndlessRunnerGame {
     const deltaTime = (currentTime - this.lastFrameTime) / 1000;
     this.lastFrameTime = currentTime;
     
-    // Clear the canvas (only set the color, actual clearing is done in renderer)
-    this.gl.clearColor(0.2, 0.3, 0.8, 1.0);
-    
     if (!this.gameOver && !this.paused) {
       // Update game state
       this.update(deltaTime);
@@ -227,7 +224,6 @@ export class EndlessRunnerGame {
           this.render();
         }
       }
-      console.log("lives:", this.lives);
       this.gameOver = true;
       this.soundGameOver.currentTime = 0; // Reset sound to beginning
       this.soundGameOver.play().catch(e => console.error('Error playing game over sound:', e));

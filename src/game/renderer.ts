@@ -1,10 +1,10 @@
 import { Player } from './player';
 import { Vector2, Vector3 } from '@math.gl/core';
-import { normalMatrix } from '@/utility';
 import { 
   createPerspectiveMatrix, 
   createViewMatrix, 
-  createModelViewMatrix 
+  createModelViewMatrix, 
+  normalMatrix
 } from '@/lib/matrix-utils';
 import { TextureManager } from '@/lib/texture-manager';
 import { 
@@ -14,13 +14,7 @@ import {
   AttributeLocations 
 } from '../lib/renderer-draw-utils';
 
-// Types
-export interface Obstacle {
-  position: Vector3;
-  scale?: Vector3;
-  size?: Vector3;
-  type: 'small-barrier' | 'large-barrier' | 'floating-barrier' | 'hole' | 'gold-coin' | 'red-coin' | 'life';
-}
+import { Obstacle } from './obstacle-manager';
 
 // Uniform locations type
 interface UniformLocations {
@@ -103,7 +97,7 @@ export class Renderer {
   };
   
   // Light configuration
-  private readonly lightPosition = [5, 10, 5];
+  private readonly lightPosition = [10, 10, 10];
   
   constructor(
     private gl: WebGL2RenderingContext, 
@@ -248,8 +242,8 @@ export class Renderer {
    */
     private renderSky(): void {
       // Create a large background plane
-      const skyPosition = new Vector3(0, -7, -180); // Far behind everything
-      const skyScale = new Vector3(180, 120, 1);   // Large plane to cover view
+      const skyPosition = new Vector3(0, 0, -180); // Far behind everything
+      const skyScale = new Vector3(180, 50, 1);   // Large plane to cover view
       
       this.renderEntity({
         position: skyPosition,
