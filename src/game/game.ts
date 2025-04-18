@@ -15,6 +15,7 @@ export class EndlessRunnerGame {
   
   private lastFrameTime: number = 0;
   private gameSpeed: number = 1.0;
+  // Game state variables
 
   private score: number = 0;
   private lives: number = 1;

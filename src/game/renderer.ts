@@ -97,7 +97,6 @@ export class Renderer {
   };
   
   // Light configuration
-  private readonly lightPosition = [10, 10, 10];
   
   constructor(
     private gl: WebGL2RenderingContext, 
@@ -229,7 +228,7 @@ export class Renderer {
     this.gl.useProgram(this.shaderProgram);
     
     // Set common uniforms
-    this.gl.uniform3fv(this.uniformLocations.lightPosition, this.lightPosition);
+    this.gl.uniform3fv(this.uniformLocations.lightPosition, [0, 10, 20]);
     this.gl.uniformMatrix4fv(
       this.uniformLocations.projectionMatrix,
       false,
